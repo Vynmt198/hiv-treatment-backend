@@ -10,12 +10,12 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 
 @Entity
-@Table(name = "User")
-public class User {
+@Table(name = "Account")
+public class Account {
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
-  private int userID;
+  private Long userID;
 
   @Column(name = "FullName", nullable = false)
   private String fullName;
@@ -37,52 +37,20 @@ public class User {
   @JoinColumn(name = "RoleID") // FK trong bảng User
   private Role role;
 
-  public int getUserID() {
+  public Long getUserID() {
     return userID;
   }
 
-  public void setUserID(int userID) {
+  public void setUserID(Long userID) {
     this.userID = userID;
   }
 
-  public Role getRole() {
-    return role;
+  public String getFullName() {
+    return fullName;
   }
 
-  public void setRole(Role role) {
-    this.role = role;
-  }
-
-  public String getGender() {
-    return gender;
-  }
-
-  public void setGender(String gender) {
-    this.gender = gender;
-  }
-
-  public String getPassword() {
-    return password;
-  }
-
-  public void setPassword(String password) {
-    this.password = password;
-  }
-
-  public String getUsername() {
-    return username;
-  }
-
-  public void setUsername(String username) {
-    this.username = username;
-  }
-
-  public String getPhone() {
-    return phone;
-  }
-
-  public void setPhone(String phone) {
-    this.phone = phone;
+  public void setFullName(String fullName) {
+    this.fullName = fullName;
   }
 
   public String getEmail() {
@@ -93,11 +61,43 @@ public class User {
     this.email = email;
   }
 
-  public String getFullName() {
-    return fullName;
+  public String getPhone() {
+    return phone;
   }
 
-  public void setFullName(String fullName) {
-    this.fullName = fullName;
+  public void setPhone(String phone) {
+    this.phone = phone;
+  }
+
+  public String getUsername() {
+    return username;
+  }
+
+  public void setUsername(String username) {
+    this.username = username;
+  }
+
+  public String getPassword() {
+    return password;
+  }
+
+  public void setPassword(String password) {
+    this.password = password;
+  }
+
+  public String getGender() {
+    return gender;
+  }
+
+  public void setGender(String gender) {
+    this.gender = gender;
+  }
+
+  public Role getRole() {
+    return role;
+  }
+
+  public void setRole(Role role) {
+    this.role = role;
   }
 }
