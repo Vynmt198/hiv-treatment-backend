@@ -22,36 +22,36 @@ public class UserEntity {
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
-  @Column(name = "UserID")
+//  @Column(name = "userid")
   private Long userId;
 
   @Nationalized
-  @Column(name = "Username", nullable = false, unique = true, length = 255)
+  @Column(nullable = false, unique = true, length = 255)
   private String username;
 
-  @Column(name = "PasswordHash", nullable = false, length = 255)
+  @Column(nullable = false, length = 255)
   private String passwordHash;
 
-  @Column(name = "Email", nullable = false, unique = true, length = 255)
+  @Column(nullable = false, unique = true, length = 255)
   private String email;
 
   @Nationalized
-  @Column(name = "FullName", length = 255)
+  @Column(length = 255)
   private String fullName;
 
-  @Column(name = "RegistrationDate", nullable = false)
+  @Column( nullable = false)
   private LocalDateTime registrationDate;
 
-  @Column(name = "LastLoginDate")
+//  @Column(name = "lastLoginDate")
   private LocalDateTime lastLoginDate;
 
-  @Column(name = "ProfilePictureURL", length = 255)
+  @Column(length = 255)
   private String profilePictureUrl;
 
-  @Column(name = "Role", nullable = false, length = 255)
+  @Column(nullable = false, length = 255)
   private String role = "member";
 
-  @Column(name = "Enabled", nullable = false)
+  @Column(nullable = false)
   private boolean enabled = false;
 
 

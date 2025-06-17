@@ -1,0 +1,48 @@
+services:
+  app:
+    build: .
+    networks:
+      - backend
+    ports:
+      - 8080:8080
+    depends_on:
+      db:
+        condition: service_healthy
+  db:
+    image: mcr.microsoft.com/mssql/server:2019-latest
+    user: root
+    environment:
+      MSSQL_SA_PASSWORD: Top1server@
+      ACCEPT_EULA: Y
+    ports:
+      - 1433:1433
+    networks:
+      - backend
+    volumes:
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+      - data:/var/opt/mssql/
+    command: >
+      /bin/bash -c '
+      /opt/mssql/bin/sqlservr & 
+      sleep 60;
+      /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P Top1server@ -d master -C -i /docker-entrypoint-initdb.d/init.sql > /tmp/init-sql.log 2>&1;
+      if [ $? -eq 0 ]; then
+        echo "init.sql executed successfully";
+      else
+              echo "init.sql failed";
+              cat /tmp/init-sql.log;
+              exit 1;
+            fi;
+            wait;
+            '
+    healthcheck:
+      test: /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P Top1server@ -Q "SELECT 1" -C
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+
+networks:
+  backend:
+volumes:
+  data:

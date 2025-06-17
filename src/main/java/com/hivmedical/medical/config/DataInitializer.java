@@ -19,6 +19,7 @@ public void run(String... args) {
     UserEntity testUser = new UserEntity();
     testUser.setUsername("test");
     testUser.setPasswordHash("123456"); // Lưu plain text tạm thời
+    testUser.setEmail("test@example.com");
     userRepositoty.save(testUser);
   }
 }

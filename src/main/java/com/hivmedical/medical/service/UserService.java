@@ -41,12 +41,6 @@ public class UserService {
   public boolean verifyOtpAndRegister(String email, String otp) {
     Optional<VerificationToken> tokenOpt = tokenRepository.findByEmailAndType(email, "EMAIL_VERIFICATION");
     if (tokenOpt.isPresent() && !tokenOpt.get().getExpiryDate().isBefore(LocalDateTime.now()) && tokenOpt.get().getToken().equals(otp)) {
-      UserEntity user = new UserEntity();
-      user.setUsername(email);
-      user.setEmail(email);
-      user.setPasswordHash(passwordEncoder.encode("123456")); // Mật khẩu mặc định, cần thay đổi
-      user.setEnabled(true);
-      userRepositoty.save(user);
       tokenRepository.delete(tokenOpt.get());
       return true;
     }

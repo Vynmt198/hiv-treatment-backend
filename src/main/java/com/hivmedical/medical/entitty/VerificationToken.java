@@ -34,6 +34,8 @@ public class VerificationToken {
   @Column(nullable = false)
   private String type;
 
+  @Column(nullable = false, length = 255)
+
   public Long getId() {
     return id;
   }
