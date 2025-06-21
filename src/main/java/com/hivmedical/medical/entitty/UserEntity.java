@@ -2,6 +2,8 @@ package com.hivmedical.medical.entitty;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -14,6 +16,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.Nationalized;
+import com.hivmedical.medical.entitty.Role;
 
 @Entity
 @Table(name = "users")
@@ -39,17 +42,18 @@ public class UserEntity {
   @Column(length = 255)
   private String fullName;
 
-  @Column( nullable = false)
+  @Column(nullable = false)
   private LocalDateTime registrationDate;
 
-//  @Column(name = "lastLoginDate")
+  //  @Column(name = "lastLoginDate")
   private LocalDateTime lastLoginDate;
 
   @Column(length = 255)
   private String profilePictureUrl;
 
-  @Column(nullable = false, length = 255)
-  private String role = "member";
+  @Column(nullable = false)
+  @Enumerated(EnumType.STRING)
+  private Role role;
 
   @Column(nullable = false)
   private boolean enabled = false;
@@ -60,9 +64,28 @@ public class UserEntity {
     if (registrationDate == null) {
       registrationDate = LocalDateTime.now();
     }
-    if (role == null || role.trim().isEmpty()) {
-      role = "member";
+    if (role == null) {
+      role = Role.PATIENT;
     }
+  }
+
+  public UserEntity() {
+  }
+
+  public UserEntity(Long userId, String username, String passwordHash, String email,
+      String fullName,
+      LocalDateTime registrationDate, LocalDateTime lastLoginDate, String profilePictureUrl,
+      Role role, boolean enabled) {
+    this.userId = userId;
+    this.username = username;
+    this.passwordHash = passwordHash;
+    this.email = email;
+    this.fullName = fullName;
+    this.registrationDate = registrationDate;
+    this.lastLoginDate = lastLoginDate;
+    this.profilePictureUrl = profilePictureUrl;
+    this.role = role;
+    this.enabled = enabled;
   }
 
   public Long getUserId() {
@@ -129,11 +152,11 @@ public class UserEntity {
     this.profilePictureUrl = profilePictureUrl;
   }
 
-  public String getRole() {
+  public Role getRole() {
     return role;
   }
 
-  public void setRole(String role) {
+  public void setRole(Role role) {
     this.role = role;
   }
 
@@ -142,25 +165,6 @@ public class UserEntity {
   }
 
   public void setEnabled(boolean enabled) {
-    this.enabled = enabled;
-  }
-
-  public UserEntity() {
-  }
-
-  public UserEntity(Long userId, String username, String passwordHash, String fullName,
-      String email,
-      LocalDateTime registrationDate, LocalDateTime lastLoginDate, String profilePictureUrl,
-      String role, boolean enabled) {
-    this.userId = userId;
-    this.username = username;
-    this.passwordHash = passwordHash;
-    this.fullName = fullName;
-    this.email = email;
-    this.registrationDate = registrationDate;
-    this.lastLoginDate = lastLoginDate;
-    this.profilePictureUrl = profilePictureUrl;
-    this.role = role;
     this.enabled = enabled;
   }
 }
