@@ -1,11 +1,16 @@
 package com.hivmedical.medical.config;
 
+import com.hivmedical.medical.security.JwtAuthenticationFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
 public class SecurityConfig {
@@ -14,34 +19,32 @@ public class SecurityConfig {
   return new BCryptPasswordEncoder();
 }
   @Bean
-  public WebSecurityCustomizer webSecurityCustomizer() {
-    return (web) -> web
-        .ignoring()
-        .requestMatchers("/**");
-  }
-//  @Bean
-//  public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-//    http.authorizeHttpRequests(
-//        authorizeRequests -> authorizeRequests.requestMatchers("/swagger-ui/**")
-//            .permitAll()
-//            .requestMatchers("/v3/api-docs*/**")
-//            .permitAll());
-//
-//    return http.build();
-//  }
+  public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    http
+        .csrf(csrf -> csrf.disable()) // Tắt CSRF cho API stateless
+        .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // Sử dụng JWT, không cần session
+        .authorizeHttpRequests(auth -> auth
+            .requestMatchers("/api/auth/register", "/api/auth/login", "/api/auth/forgot-password", "/api/auth/reset-password-otp", "/api/auth/register-verify-otp", "/api/auth/test-email", "/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
+            .requestMatchers("/api/admin/**").hasRole("ADMIN")
+            .requestMatchers("/api/doctor/**").hasRole("DOCTOR")
+            .requestMatchers("/api/staff/**").hasRole("STAFF")
+            .requestMatchers("/api/patient/**").hasRole("PATIENT")
+            .anyRequest().authenticated()
+        )
+        .addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
 
-//  ===============Thay đổi: Cho phép /api/auth/** không cần xác thực, tắt form login mặc định.
-//@Bean
-//public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-//  http
-//      .csrf(csrf -> csrf.disable())
-//      .authorizeHttpRequests(authorizeRequests -> authorizeRequests
-//          .requestMatchers("/api/auth/**").permitAll()
-//          .requestMatchers("/swagger-ui/**", "/v3/api-docs*/**").permitAll()
-//          .anyRequest().authenticated()
-//      )
-//      .formLogin(form -> form.disable())
-//      .httpBasic(httpBasic -> httpBasic.disable());
-//  return http.build();
-//}
+    return http.build();
+  }
+
+  @Bean
+  public JwtAuthenticationFilter jwtAuthenticationFilter() {
+    return new JwtAuthenticationFilter();
+  }
+
+  @Bean
+  public AuthenticationManager authenticationManager(
+      AuthenticationConfiguration authenticationConfiguration) throws Exception {
+    return authenticationConfiguration.getAuthenticationManager();
+  }
+
 }
