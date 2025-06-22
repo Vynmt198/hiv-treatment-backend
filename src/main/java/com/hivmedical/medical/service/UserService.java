@@ -6,14 +6,18 @@ import com.hivmedical.medical.repository.UserRepositoty;
 import com.hivmedical.medical.repository.VerificationTokenRepository;
 import java.security.SecureRandom;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
-import java.util.Random;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 @Service
 public class UserService {
+
+  private static final Logger logger = LoggerFactory.getLogger(UserService.class);
 
   @Autowired
   private UserRepositoty userRepositoty;
@@ -29,8 +33,10 @@ public class UserService {
   public boolean isEmailExists(String email) {
     return userRepositoty.existsByEmail(email);
   }
+
   public void registerUserWithOtp(UserEntity user) {
     String otp = generateOtp();
+    logger.info("Generating OTP {} for email: {}", otp, user.getEmail());
     VerificationToken token = new VerificationToken();
     token.setEmail(user.getEmail());
     token.setToken(otp);
@@ -42,11 +48,21 @@ public class UserService {
   }
 
   public boolean verifyOtpAndRegister(String email, String otp) {
-    Optional<VerificationToken> tokenOpt = tokenRepository.findByEmailAndType(email, "EMAIL_VERIFICATION");
-    if (tokenOpt.isPresent() && !tokenOpt.get().getExpiryDate().isBefore(LocalDateTime.now()) && tokenOpt.get().getToken().equals(otp)) {
-      tokenRepository.delete(tokenOpt.get());
+    logger.info("Verifying OTP for email: {}", email);
+    List<VerificationToken> tokens = tokenRepository.findByEmailAndType(email, "EMAIL_VERIFICATION");
+    if (tokens.isEmpty()) {
+      logger.warn("No verification token found for email: {}", email);
+      return false;
+    }
+    VerificationToken latestToken = tokens.stream()
+        .filter(t -> !t.getExpiryDate().isBefore(LocalDateTime.now()))
+        .max((t1, t2) -> t1.getExpiryDate().compareTo(t2.getExpiryDate()))
+        .orElse(null);
+    if (latestToken != null && latestToken.getToken().equals(otp)) {
+      tokenRepository.delete(latestToken);
       return true;
     }
+    logger.warn("OTP verification failed for email: {} - OTP invalid or expired", email);
     return false;
   }
 
@@ -54,26 +70,36 @@ public class UserService {
     return userRepositoty.findByEmail(email).orElse(null);
   }
 
-  public void sendPasswordResetOtp(String email, String newPassword) {
+  public void sendPasswordResetOtp(String email) {
     String otp = generateOtp();
+    logger.info("Generating password reset OTP {} for email: {}", otp, email);
     VerificationToken token = new VerificationToken();
     token.setEmail(email);
     token.setToken(otp);
-    token.setUserInfo(passwordEncoder.encode(newPassword)); // Lưu mật khẩu đã mã hóa
+    token.setUserInfo(""); // Không lưu mật khẩu mới ở đây
     token.setExpiryDate(LocalDateTime.now().plusMinutes(10));
     token.setType("PASSWORD_RESET_OTP");
     tokenRepository.save(token);
     emailService.sendOtpEmail(email, otp);
   }
 
-  public boolean verifyOtpAndResetPassword(String email, String otp) {
-    Optional<VerificationToken> tokenOpt = tokenRepository.findByEmailAndType(email, "PASSWORD_RESET_OTP");
-    if (tokenOpt.isPresent() && !tokenOpt.get().getExpiryDate().isBefore(LocalDateTime.now()) && tokenOpt.get().getToken().equals(otp)) {
+  public boolean verifyOtpAndResetPassword(String email, String otp, String newPassword) {
+    logger.info("Verifying password reset OTP for email: {}", email);
+    List<VerificationToken> tokens = tokenRepository.findByEmailAndType(email, "PASSWORD_RESET_OTP");
+    if (tokens.isEmpty()) {
+      logger.warn("No password reset token found for email: {}", email);
+      return false;
+    }
+    VerificationToken latestToken = tokens.stream()
+        .filter(t -> !t.getExpiryDate().isBefore(LocalDateTime.now()))
+        .max((t1, t2) -> t1.getExpiryDate().compareTo(t2.getExpiryDate()))
+        .orElse(null);
+    if (latestToken != null && latestToken.getToken().equals(otp)) {
       UserEntity user = userRepositoty.findByEmail(email).orElse(null);
       if (user != null) {
-        user.setPasswordHash(tokenOpt.get().getUserInfo());
+        user.setPasswordHash(passwordEncoder.encode(newPassword));
         userRepositoty.save(user);
-        tokenRepository.delete(tokenOpt.get());
+        tokenRepository.delete(latestToken);
         return true;
       }
     }
