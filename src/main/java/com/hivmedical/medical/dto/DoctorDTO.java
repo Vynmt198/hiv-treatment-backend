@@ -10,6 +10,21 @@ public class DoctorDTO {
   private String phoneNumber;
   private String workingSchedule;
 
+  public DoctorDTO() {
+
+  }
+
+  public DoctorDTO(Long id, String fullName, String specialization, String qualification,
+      String email, String phoneNumber, String workingSchedule) {
+    this.id = id;
+    this.fullName = fullName;
+    this.specialization = specialization;
+    this.qualification = qualification;
+    this.email = email;
+    this.phoneNumber = phoneNumber;
+    this.workingSchedule = workingSchedule;
+  }
+
   public Long getId() {
     return id;
   }

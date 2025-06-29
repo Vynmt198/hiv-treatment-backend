@@ -31,7 +31,6 @@ public class Doctor {
 
 
   public Doctor() {
-
   }
 
   public Doctor(Long id, String fullName, String specialization, String qualification, String email,
