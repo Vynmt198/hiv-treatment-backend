@@ -31,12 +31,7 @@ public class Schedule {
   public Schedule() {
   }
 
-  public Schedule(Long id, Doctor doctor, LocalDate date, String timeSlots) {
-    this.id = id;
-    this.doctor = doctor;
-    this.date = date;
-    this.timeSlots = timeSlots;
-  }
+
 
   public Long getId() {
     return id;

@@ -9,6 +9,17 @@ public class ScheduleDTO {
   private LocalDate date;
   private List<String> timeSlots;
 
+
+  public ScheduleDTO() {
+  }
+
+  public ScheduleDTO(Long id, Long doctorId, LocalDate date, List<String> timeSlots) {
+    this.id = id;
+    this.doctorId = doctorId;
+    this.date = date;
+    this.timeSlots = timeSlots;
+  }
+
   public Long getId() {
     return id;
   }
