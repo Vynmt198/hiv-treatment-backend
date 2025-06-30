@@ -9,6 +9,7 @@ import jakarta.persistence.Table;
 import java.time.LocalDateTime;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.Nationalized;
 
 @Entity
 @Table(name = "verification_tokens")
@@ -25,12 +26,14 @@ public class VerificationToken {
   @Column(nullable = false)
   private String email;
 
-  @Column(columnDefinition = "TEXT", nullable = false)
+  @Nationalized
+  @Column(columnDefinition = "NVARCHAR(MAX)", nullable = false)
   private String userInfo;
 
   @Column(nullable = false)
   private LocalDateTime expiryDate;
 
+  @Nationalized
   @Column(nullable = false)
   private String type;
 

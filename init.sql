@@ -1,56 +1,53 @@
-BEGIN
-    CREATE DATABASE hiv_medical;
-END;
+-- Tạo cơ sở dữ liệu
+CREATE DATABASE hiv_medical;
 GO
-USE hiv_medical
+USE hiv_medical;
+GO
 
--- Khởi tạo dữ liệu cho bảng users
--- INSERT INTO users (username, password_hash, email, full_name, registration_date, last_login_date, profile_picture_url, role, enabled) VALUES
---                                                                                                                                           ('nguyenvana', '$2a$10$exampleHashedPassword1', 'nguyenvana@gmail.com', 'Nguyen Van A', '2025-06-30 10:00:00', NULL, NULL, 'PATIENT', true),
---                                                                                                                                           ('tranb', '$2a$10$exampleHashedPassword2', 'tranb@gmail.com', 'Tran Thi B', '2025-06-30 10:30:00', '2025-06-30 12:00:00', NULL, 'PATIENT', true),
---                                                                                                                                           ('admin', '$2a$10$exampleHashedPassword3', 'admin@hivmedical.vn', 'Quan Tri Vien', '2025-06-30 09:00:00', '2025-06-30 15:00:00', NULL, 'ADMIN', true);
+-- Xóa và khởi tạo dữ liệu cho bảng users
+DELETE FROM users;
+INSERT INTO users (username, password_hash, email, full_name, registration_date, last_login_date, profile_picture_url, role, enabled) VALUES
+                                                                                                                                          (N'nguyenvana', '$2a$10$exampleHashedPassword1', 'nguyenvana@gmail.com', N'Nguyễn Văn A', '2025-06-30 10:00:00', NULL, NULL, 'PATIENT', 1),
+                                                                                                                                          (N'tranb', '$2a$10$exampleHashedPassword2', 'tranb@gmail.com', N'Trần Thị B', '2025-06-30 10:30:00', '2025-06-30 12:00:00', NULL, 'PATIENT', 1),
+                                                                                                                                          (N'admin', '$2a$10$exampleHashedPassword3', 'admin@hivmedical.vn', N'Quản Trị Viên', '2025-06-30 09:00:00', '2025-06-30 15:00:00', NULL, 'ADMIN', 1);
 
--- Khởi tạo dữ liệu cho bảng doctors
-INSERT INTO dbo.doctor (email, full_name, phone_number, qualification, specialization, working_schedule, image_url)
-VALUES
-    ('nguyen.an@hivclinic.vn', 'BS. Nguyen Van An', '0912345678', 'Bac si CKI', 'HIV/AIDS', 'Thu 2 - Thu 6, 08:00-17:00', 'https://img.lovepik.com/free-png/20211215/lovepik-male-doctor-image-png-image_401633157_wh1200.png'),
-    ('tran.mai@hivclinic.vn', 'BS. Tran Thi Mai', '0987654321', 'Thac si Y hoc', 'HIV/AIDS', 'Thu 2 - Thu 6, 07:30-16:30', 'https://honghunghospital.com.vn/wp-content/uploads/2020/05/18.-Nguy%E1%BB%85n-Thanh-Ph%C6%B0%C6%A1ng-scaled.jpg'),
-    ('le.huy@hivclinic.vn', 'BS. Le Quang Huy', '0909123456', 'Bac si Da khoa', 'HIV/AIDS', 'Thu 3 - Thu 7, 08:00-17:00', 'https://img.lovepik.com/free-png/20211215/lovepik-male-doctor-image-png-image_401633174_wh1200.png'),
-    ('do.lan@hivclinic.vn', 'TS. Do Thi Lan', '0933666888', 'Tien si Y hoc', 'HIV/AIDS', 'Thu 2 - Thu 6, 09:00-18:00', 'https://img.lovepik.com/element/40094/5848.png_860.png'),
-    ('pham.tuan@hivclinic.vn', 'BS. Pham Minh Tuan', '0977333444', 'Bac si CKII', 'HIV/AIDS', 'Thu 2 - Thu 6, 08:30-17:30', 'https://honghunghospital.com.vn/wp-content/uploads/2020/09/26.-L%C3%AA-Tu%E1%BA%A5n-Anh-1-scaled.jpg');
+-- Xóa và khởi tạo dữ liệu cho bảng doctor
+DELETE FROM doctor;
+INSERT INTO dbo.doctor (email, full_name, phone_number, qualification, specialization, working_schedule, image_url) VALUES
+                                                                                                                        ('nguyen.an@hivclinic.vn', N'Bác sĩ Nguyễn Văn An', '0912345678', N'Bác sĩ CKI', N'HIV/AIDS', N'Thứ 2 - Thứ 6, 08:00-17:00', 'https://img.lovepik.com/free-png/20211215/lovepik-male-doctor-image-png-image_401633157_wh1200.png'),
+                                                                                                                        ('tran.mai@hivclinic.vn', N'Bác sĩ Trần Thị Mai', '0987654321', N'Thạc sĩ Y học', N'HIV/AIDS', N'Thứ 2 - Thứ 6, 07:30-16:30', 'https://honghunghospital.com.vn/wp-content/uploads/2020/05/18.-Nguy%E1%BB%85n-Thanh-Ph%C6%B0%C6%A1ng-scaled.jpg'),
+                                                                                                                        ('le.huy@hivclinic.vn', N'Bác sĩ Lê Quang Huy', '0909123456', N'Bác sĩ Đa khoa', N'HIV/AIDS', N'Thứ 3 - Thứ 7, 08:00-17:00', 'https://img.lovepik.com/free-png/20211215/lovepik-male-doctor-image-png-image_401633174_wh1200.png'),
+                                                                                                                        ('do.lan@hivclinic.vn', N'Tiến sĩ Đỗ Thị Lan', '0933666888', N'Tiến sĩ Y học', N'HIV/AIDS', N'Thứ 2 - Thứ 6, 09:00-18:00', 'https://img.lovepik.com/element/40094/5848.png_860.png'),
+                                                                                                                        ('pham.tuan@hivclinic.vn', N'Bác sĩ Phạm Minh Tuấn', '0977333444', N'Bác sĩ CKII', N'HIV/AIDS', N'Thứ 2 - Thứ 6, 08:30-17:30', 'https://honghunghospital.com.vn/wp-content/uploads/2020/09/26.-L%C3%AA-Tu%E1%BA%A5n-Anh-1-scaled.jpg');
 
+-- Xóa và khởi tạo dữ liệu cho bảng services
+DELETE FROM services;
+INSERT INTO dbo.services (created_at, description, name, price, updated_at, type) VALUES
+                                                                                      ('2025-06-30 16:23:07.426667', N'["Bảo mật & Hiệu quả.", "Sử dụng thuốc để phòng tránh lây nhiễm HIV trước khi có nguy cơ tiếp xúc.", "Được tư vấn và theo dõi bởi đội ngũ y tế giàu kinh nghiệm."]', N'Dự phòng trước phơi nhiễm HIV – PrEP', N'500000', '2025-06-30 16:23:07.426667', N'FIRST_VISIT'),
+                                                                                      ('2025-06-30 16:23:07.426667', N'["Ít tác dụng phụ.", "Điều trị khẩn cấp sau khi có nguy cơ phơi nhiễm HIV.", "Hiệu quả nếu thực hiện trong vòng 72 giờ."]', N'Dự phòng sau phơi nhiễm HIV – PEP', N'300000', '2025-06-30 16:23:07.426667', N'FIRST_VISIT'),
+                                                                                      ('2025-06-30 16:23:07.426667', N'["Bảo mật & Uy tín.", "Điều trị HIV lâu dài giúp kiểm soát virus.", "Nâng cao chất lượng cuộc sống và giảm nguy cơ lây nhiễm."]', N'Điều trị HIV – ARV', N'Tùy phác đồ', '2025-06-30 16:23:07.426667', N'FOLLOW_UP'),
+                                                                                      ('2025-06-30 16:23:07.426667', N'["Theo lịch hẹn.", "Tư vấn khám chữa bệnh qua điện thoại, ứng dụng.", "Tiện lợi và bảo mật tối đa."]', N'Dịch vụ tại nhà', N'Liên hệ để biết giá', '2025-06-30 16:23:07.426667', N'FOLLOW_UP'),
+                                                                                      ('2025-06-30 16:23:07.426667', N'["Hỗ trợ tinh thần.", "Tư vấn tâm lý cho người sống chung với HIV.", "Giảm căng thẳng, lo lắng, nâng cao tinh thần."]', N'Tư vấn tâm lý', N'Liên hệ để biết giá', '2025-06-30 16:23:07.426667', N'FOLLOW_UP'),
+                                                                                      ('2025-06-30 16:43:09.769112', N'["Hỗ trợ chế độ ăn uống.", "Tăng cường sức khỏe."]', N'Tư vấn dinh dưỡng', N'200000', '2025-06-30 16:43:09.769112', N'FIRST_VISIT');
 
--- Khởi tạo dữ liệu cho bảng services
-INSERT INTO dbo.services (created_at, description, name, price, updated_at, type)
-VALUES
-    ('2025-06-30 16:23:07.426667', '["Bao mat & Hieu qua.", "Su dung thuoc de phong tranh lay nhiem HIV truoc khi co nguy co tiep xuc.", "Duoc tu van va theo doi boi doi ngu y te giau kinh nghiem."]', 'Du phong truoc phoi nhiem HIV – PrEP', '500000', '2025-06-30 16:23:07.426667', 'FIRST_VISIT'),
+-- Xóa và khởi tạo dữ liệu cho bảng schedule
+DELETE FROM schedule;
+INSERT INTO dbo.schedule (date, time_slots, doctor_id) VALUES
+                                                           ('2025-06-26', N'["08:00-09:00", "09:00-10:00"]', 1),
+                                                           ('2025-06-26', N'["07:30-08:30", "08:30-09:30"]', 2),
+                                                           ('2025-06-26', N'["08:00-09:00", "09:00-10:00"]', 3),
+                                                           ('2025-06-26', N'["09:00-10:00", "10:00-11:00"]', 4),
+                                                           ('2025-06-26', N'["08:30-09:30", "09:30-10:30"]', 5);
 
-    ('2025-06-30 16:23:07.426667', '["It tac dung phu.", "Dieu tri khan cap sau khi co nguy co phoi nhiem HIV.", "Hieu qua neu thuc hien trong vong 72 gio."]', 'Du phong sau phoi nhiem HIV – PEP', '300000', '2025-06-30 16:23:07.426667', 'FIRST_VISIT'),
-
-    ('2025-06-30 16:23:07.426667', '["Bao mat & Uy tin.", "Dieu tri HIV lau dai giup kiem soat virus.", "Nang cao chat luong cuoc song va giam nguy co lay nhiem."]', 'Dieu tri HIV – ARV', 'Tuy phac do', '2025-06-30 16:23:07.426667', 'FOLLOW_UP'),
-
-    ('2025-06-30 16:23:07.426667', '["Theo lich hen.", "Tu van kham chua benh qua dien thoai, ung dung.", "Tien loi va bao mat toi da."]', 'Dich vu tai nha', 'Lien he de biet gia', '2025-06-30 16:23:07.426667', 'FOLLOW_UP'),
-
-    ('2025-06-30 16:23:07.426667', '["Ho tro tinh than.", "Tu van tam ly cho nguoi song chung voi HIV.", "Giam cang thang, lo lang, nang cao tinh than."]', 'Tu van tam ly', 'Lien he de biet gia', '2025-06-30 16:23:07.426667', 'FOLLOW_UP'),
-
-    ('2025-06-30 16:43:09.769112', '["Ho tro che do an uong.", "Tang cuong suc khoe."]', 'Tu van dinh duong', '200000', '2025-06-30 16:43:09.769112', 'FIRST_VISIT');
-
--- Khởi tạo dữ liệu cho bảng schedules
-INSERT INTO dbo.schedule (date, time_slots, doctor_id)
-VALUES
-    ('2025-06-26', '["08:00-09:00", "09:00-10:00"]', 1),
-    ('2025-06-26', '["07:30-08:30", "08:30-09:30"]', 2),
-    ('2025-06-26', '["08:00-09:00", "09:00-10:00"]', 3),
-    ('2025-06-26', '["09:00-10:00", "10:00-11:00"]', 4),
-    ('2025-06-26', '["08:30-09:30", "09:30-10:30"]', 5);
-
--- Khởi tạo dữ liệu cho bảng appointments
+-- Xóa và khởi tạo dữ liệu cho bảng appointments
+DELETE FROM appointments;
 INSERT INTO appointments (user_id, doctor_id, date, time, type, is_anonymous, status, reference_code) VALUES
-                                                                                                          (1, 1, '2025-07-01', '08:00:00', 'Tu van HIV', false, 'CONFIRMED', 'APPT001'),
-                                                                                                          (2, 2, '2025-07-01', '09:00:00', 'Xet nghiem HIV', true, 'PENDING', 'APPT002'),
-                                                                                                          (NULL, 1, '2025-07-02', '09:00:00', 'Tu van HIV', true, 'PENDING', 'APPT003');
+                                                                                                          (1, 1, '2025-07-01', '08:00:00', N'Tư vấn HIV', 0, N'CONFIRMED', N'APPT001'),
+                                                                                                          (2, 2, '2025-07-01', '09:00:00', N'Xét nghiệm HIV', 1, N'PENDING', N'APPT002'),
+                                                                                                          (NULL, 1, '2025-07-02', '09:00:00', N'Tư vấn HIV', 1, N'PENDING', N'APPT003');
 
--- Khởi tạo dữ liệu cho bảng verification_tokens
--- INSERT INTO verification_tokens (token, email, user_info, expiry_date, type) VALUES
---                                                                                  ('token123456', 'nguyenvana@gmail.com', '{"username": "nguyenvana", "fullName": "Nguyen Van A"}', '2025-07-01 10:00:00', 'EMAIL_VERIFICATION'),
---                                                                                  ('token789012', 'tranb@gmail.com', '{"username": "tranb", "fullName": "Tran Thi B"}', '2025-07-01 10:30:00', 'EMAIL_VERIFICATION');
+-- Xóa và khởi tạo dữ liệu cho bảng verification_tokens
+DELETE FROM verification_tokens;
+INSERT INTO verification_tokens (token, email, user_info, expiry_date, type) VALUES
+                                                                                 ('token123456', 'nguyenvana@gmail.com', N'{"username": "nguyenvana", "fullName": "Nguyễn Văn A"}', '2025-07-01 10:00:00', N'EMAIL_VERIFICATION'),
+                                                                                 ('token789012', 'tranb@gmail.com', N'{"username": "tranb", "fullName": "Trần Thị B"}', '2025-07-01 10:30:00', N'EMAIL_VERIFICATION');
