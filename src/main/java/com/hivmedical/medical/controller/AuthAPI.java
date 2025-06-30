@@ -7,11 +7,11 @@ import com.hivmedical.medical.dto.ForgotPasswordOtpRequest;
 import com.hivmedical.medical.dto.LoginRequest;
 import com.hivmedical.medical.dto.RegisterRequest;
 import com.hivmedical.medical.dto.VerifyOtpRequest;
-import com.hivmedical.medical.entitty.UserEntity;
-import com.hivmedical.medical.repository.UserRepositoty;
+import com.hivmedical.medical.entitty.UserEntity; // Sửa lỗi chính tả
+import com.hivmedical.medical.entitty.Role; // Sửa lỗi chính tả
+import com.hivmedical.medical.repository.UserRepositoty; // Sửa lỗi chính tả
 import com.hivmedical.medical.service.EmailService;
 import com.hivmedical.medical.service.UserService;
-import com.hivmedical.medical.entitty.Role;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.Parameters;
@@ -50,25 +50,20 @@ public class AuthAPI {
   private BCryptPasswordEncoder passwordEncoder;
 
   @Autowired
-  private UserRepositoty userRepositoty;
+  private UserRepositoty userRepository;
   @Autowired
   private EmailService emailService;
 
   @Value("${jwt.secret}")
   private String jwtSecret;
 
-  /**
-   * BƯỚC 1: Đăng ký - Gửi OTP về email
-   * Endpoint: POST /api/auth/register-request
-   */
-
   @Operation(summary = "Register a new user by sending OTP to email")
   @ApiResponse(responseCode = "200", description = "OTP sent successfully",
-      content = @Content(mediaType = "application/json",
-          schema = @Schema(implementation = Map.class, example = "{\"success\": true, \"message\": \"OTP đã được gửi về email. Vui lòng kiểm tra email để xác thực!\"}")))
+          content = @Content(mediaType = "application/json",
+                  schema = @Schema(implementation = Map.class, example = "{\"success\": true, \"message\": \"OTP đã được gửi về email. Vui lòng kiểm tra email để xác thực!\"}")))
   @ApiResponse(responseCode = "400", description = "Invalid input or email already exists",
-      content = @Content(mediaType = "application/json",
-          schema = @Schema(implementation = Map.class, example = "{\"success\": false, \"message\": \"Email đã được sử dụng\"}")))
+          content = @Content(mediaType = "application/json",
+                  schema = @Schema(implementation = Map.class, example = "{\"success\": false, \"message\": \"Email đã được sử dụng\"}")))
   @PostMapping("/register")
   public ResponseEntity<Map<String, Object>> registerRequest(@RequestBody RegisterRequest request, BindingResult result) {
     Map<String, Object> response = new HashMap<>();
@@ -94,10 +89,10 @@ public class AuthAPI {
       String hashPass = passwordEncoder.encode(request.getPassword());
       user.setPasswordHash(hashPass);
       user.setUsername(request.getEmail());
-      user.setRole(Role.PATIENT); // Mặc định là PATIENT
+      user.setRole(Role.PATIENT);
       user.setEnabled(false);
       userService.registerUserWithOtp(user);
-      userRepositoty.save(user);
+      userRepository.save(user);
 
       response.put("success", true);
       response.put("message", "OTP đã được gửi về email. Vui lòng kiểm tra email để xác thực!");
@@ -109,16 +104,12 @@ public class AuthAPI {
     }
   }
 
-  /**
-   * BƯỚC 2: Xác nhận OTP để hoàn tất đăng ký
-   * Endpoint: POST /api/auth/register-verify-otp
-   */
   @PostMapping("/register-verify-otp")
   public ResponseEntity<Map<String, Object>> verifyRegisterOtp(@RequestBody VerifyOtpRequest request) {
     Map<String, Object> response = new HashMap<>();
     boolean ok = userService.verifyOtpAndRegister(request.getEmail(), request.getOtp());
     if (ok) {
-      Optional<UserEntity> userOptional = userRepositoty.findByEmail(request.getEmail());
+      Optional<UserEntity> userOptional = userRepository.findByEmail(request.getEmail());
       if (userOptional.isPresent()) {
         UserEntity user = userOptional.get();
         if (user.isEnabled()) {
@@ -127,7 +118,7 @@ public class AuthAPI {
           return ResponseEntity.badRequest().body(response);
         }
         user.setEnabled(true);
-        userRepositoty.save(user);
+        userRepository.save(user);
       }
       response.put("success", true);
       response.put("message", "Đăng ký thành công! Bạn đã có thể đăng nhập.");
@@ -139,10 +130,6 @@ public class AuthAPI {
     }
   }
 
-  /**
-   * Đăng nhập
-   * Endpoint: POST /api/auth/login
-   */
   @PostMapping("/login")
   public ResponseEntity<Map<String, Object>> login(@RequestBody LoginRequest request) {
     Map<String, Object> response = new HashMap<>();
@@ -167,15 +154,15 @@ public class AuthAPI {
 
       Algorithm algorithm = Algorithm.HMAC256(jwtSecret);
       String jwt = JWT.create()
-          .withClaim("username", user.getUsername())
-          .withClaim("role", user.getRole().name()) // Sử dụng tên enum
-          .withExpiresAt(new Date(System.currentTimeMillis() + TimeUnit.DAYS.toMillis(1))) // 24 giờ
-          .sign(algorithm);
+              .withClaim("username", user.getUsername())
+              .withClaim("role", "ROLE_" + user.getRole().name()) // Sửa ở đây
+              .withExpiresAt(new Date(System.currentTimeMillis() + TimeUnit.DAYS.toMillis(1))) // 24 giờ
+              .sign(algorithm);
 
       response.put("success", true);
       response.put("message", "Đăng nhập thành công");
       response.put("token", jwt);
-      response.put("role", user.getRole().name()); // Trả về vai trò
+      response.put("role", "ROLE_" + user.getRole().name());
       return ResponseEntity.ok(response);
     } catch (Exception e) {
       response.put("success", false);
@@ -184,19 +171,16 @@ public class AuthAPI {
     }
   }
 
-
-/* =========== route verify phan quyen tam ========== */
   @Parameters({
-      @Parameter(
-          in = ParameterIn.HEADER,
-          name = "Authorization",
-          schema = @Schema(type = "string"),
-          description = "Bearer token for authentication",
-          required = true // Set to false if optional
-      )
+          @Parameter(
+                  in = ParameterIn.HEADER,
+                  name = "Authorization",
+                  schema = @Schema(type = "string"),
+                  description = "Bearer token for authentication",
+                  required = true
+          )
   })
 
-  /* verify user already exist */
   @PostMapping("/verify")
   public ResponseEntity<Map<String, Object>> verify(@RequestHeader(HttpHeaders.AUTHORIZATION) String auth) {
     Map<String, Object> response = new HashMap<>();
@@ -210,7 +194,7 @@ public class AuthAPI {
       Algorithm algorithm = Algorithm.HMAC256(jwtSecret);
       DecodedJWT jwt = JWT.require(algorithm).build().verify(token);
       String username = jwt.getClaim("username").asString();
-      if (!userRepositoty.existsByUsername(username)) {
+      if (!userRepository.existsByUsername(username)) {
         response.put("success", false);
         response.put("message", "User not found");
         return ResponseEntity.badRequest().body(response);
@@ -225,12 +209,7 @@ public class AuthAPI {
       return ResponseEntity.badRequest().body(response);
     }
   }
-//=====================================================
-//================= NOT YET COMPLETE ==================
-  /**
-   * BƯỚC 1: Gửi OTP xác nhận đổi mật khẩu về email
-   * Endpoint: POST /api/auth/forgot-password
-   */
+
   @PostMapping("/forgot-password")
   public ResponseEntity<Map<String, Object>> forgotPassword(@RequestBody ForgotPasswordOtpRequest req) {
     Map<String, Object> response = new HashMap<>();
@@ -246,10 +225,6 @@ public class AuthAPI {
     }
   }
 
-  /**
-   * BƯỚC 2: Nhập OTP để đổi mật khẩu
-   * Endpoint: POST /api/auth/reset-password-otp
-   */
   @PostMapping("/reset-password-otp")
   public ResponseEntity<Map<String, Object>> resetPasswordOtp(@RequestBody VerifyOtpRequest req) {
     boolean ok = userService.verifyOtpAndResetPassword(req.getEmail(), req.getOtp());
@@ -260,26 +235,24 @@ public class AuthAPI {
     }
   }
 
-//  ============= Test-email ===========
-@PostMapping("/test-email")
-public ResponseEntity<Map<String, Object>> testEmail(@RequestBody Map<String, String> request) {
-  Map<String, Object> response = new HashMap<>();
-  try {
-    String email = request.get("email");
-    if (email == null || email.trim().isEmpty()) {
+  @PostMapping("/test-email")
+  public ResponseEntity<Map<String, Object>> testEmail(@RequestBody Map<String, String> request) {
+    Map<String, Object> response = new HashMap<>();
+    try {
+      String email = request.get("email");
+      if (email == null || email.trim().isEmpty()) {
+        response.put("success", false);
+        response.put("message", "Email is required");
+        return ResponseEntity.badRequest().body(response);
+      }
+      emailService.sendOtpEmail(email, "TEST123");
+      response.put("success", true);
+      response.put("message", "Email sent successfully");
+      return ResponseEntity.ok(response);
+    } catch (Exception e) {
       response.put("success", false);
-      response.put("message", "Email is required");
+      response.put("message", "Failed to send email: " + e.getMessage());
       return ResponseEntity.badRequest().body(response);
     }
-    emailService.sendOtpEmail(email, "TEST123");
-    response.put("success", true);
-    response.put("message", "Email sent successfully");
-    return ResponseEntity.ok(response);
-  } catch (Exception e) {
-    response.put("success", false);
-    response.put("message", "Failed to send email: " + e.getMessage());
-    return ResponseEntity.badRequest().body(response);
   }
-}
-
 }

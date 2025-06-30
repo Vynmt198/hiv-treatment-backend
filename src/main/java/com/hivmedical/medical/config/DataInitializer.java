@@ -12,47 +12,47 @@ import org.springframework.stereotype.Component;
 public class DataInitializer implements CommandLineRunner {
 
   @Autowired
-  private UserRepositoty userRepositoty;
+  private UserRepositoty userRepository;
   @Autowired
   private BCryptPasswordEncoder passwordEncoder;
 
   @Override
   public void run(String... args) {
-    if (userRepositoty.findByUsername("admin").isEmpty()) {
+    if (userRepository.findByUsername("admin").isEmpty()) {
       UserEntity admin = new UserEntity();
       admin.setUsername("admin");
       admin.setPasswordHash(passwordEncoder.encode("Admin123"));
       admin.setEmail("admin@example.com");
       admin.setRole(Role.ADMIN);
       admin.setEnabled(true);
-      userRepositoty.save(admin);
+      userRepository.save(admin);
     }
-    if (userRepositoty.findByUsername("doctor").isEmpty()) {
+    if (userRepository.findByUsername("doctor").isEmpty()) {
       UserEntity doctor = new UserEntity();
       doctor.setUsername("doctor");
       doctor.setPasswordHash(passwordEncoder.encode("Doctor123"));
       doctor.setEmail("doctor@example.com");
       doctor.setRole(Role.DOCTOR);
       doctor.setEnabled(true);
-      userRepositoty.save(doctor);
+      userRepository.save(doctor);
     }
-    if (userRepositoty.findByUsername("staff").isEmpty()) {
+    if (userRepository.findByUsername("staff").isEmpty()) {
       UserEntity staff = new UserEntity();
       staff.setUsername("staff");
       staff.setPasswordHash(passwordEncoder.encode("Staff123"));
       staff.setEmail("staff@example.com");
       staff.setRole(Role.STAFF);
       staff.setEnabled(true);
-      userRepositoty.save(staff);
+      userRepository.save(staff);
     }
-    if (userRepositoty.findByUsername("patient").isEmpty()) {
+    if (userRepository.findByUsername("patient").isEmpty()) {
       UserEntity patient = new UserEntity();
       patient.setUsername("patient");
       patient.setPasswordHash(passwordEncoder.encode("Patient123"));
       patient.setEmail("patient@example.com");
       patient.setRole(Role.PATIENT);
       patient.setEnabled(true);
-      userRepositoty.save(patient);
+      userRepository.save(patient);
     }
   }
 }
