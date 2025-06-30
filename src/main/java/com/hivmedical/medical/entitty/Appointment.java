@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.Setter;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import org.hibernate.annotations.Nationalized;
 
 @Entity
 @Table(name = "appointments")
@@ -25,10 +26,17 @@ public class Appointment {
 
   private LocalDate date;
   private LocalTime time;
+  @Nationalized
+  @Column(nullable = false)
   private String type;
+
   private boolean isAnonymous;
+
+  @Nationalized
+  @Column(nullable = false)
   private String status;
 
+  @Nationalized
   @Column(name = "reference_code")
   private String referenceCode;
 

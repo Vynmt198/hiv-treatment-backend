@@ -10,6 +10,7 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import org.hibernate.annotations.Nationalized;
 
 @Entity
 @Table
@@ -25,6 +26,7 @@ public class Schedule {
   @Column(nullable = false)
   private LocalDate date;
 
+  @Nationalized
   @Column(columnDefinition = "NVARCHAR(MAX)")
   private String timeSlots;
 

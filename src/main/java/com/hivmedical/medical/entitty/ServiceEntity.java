@@ -3,6 +3,7 @@ package com.hivmedical.medical.entitty;
 import jakarta.persistence.*;
 import lombok.Data;
 import java.time.LocalDateTime;
+import org.hibernate.annotations.Nationalized;
 
 @Entity
 @Table(name = "services")
@@ -12,16 +13,20 @@ public class ServiceEntity {
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
 
+
+  @Nationalized
   @Column(nullable = false)
   private String name;
 
-  @Column(columnDefinition = "TEXT")
-  private String description; // Lưu dưới dạng JSON string
+  @Nationalized
+  @Column(columnDefinition = "NVARCHAR(MAX)")
+  private String description;
 
-  @Column
+  @Nationalized
   private String price;
 
-  @Column( nullable = false)
+  @Nationalized
+  @Column(nullable = false)
   private String type; // FIRST_VISIT hoặc FOLLOW_UP
 
   @Column(name = "created_at")
