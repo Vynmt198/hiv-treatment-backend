@@ -7,6 +7,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import org.hibernate.annotations.Nationalized;
 
 @Entity
 @Table(name = "Doctor")
@@ -15,13 +16,23 @@ public class Doctor {
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
 
-  @Column(nullable = false)
+  @Nationalized
+  @Column(columnDefinition = "NVARCHAR(MAX)",nullable = false)
   private String fullName;
 
+  @Nationalized
   private String specialization;
+
+  @Nationalized
   private String qualification;
+
+  @Column
   private String email;
+
+  @Column
   private String phoneNumber;
+
+  @Nationalized
   private String workingSchedule;
 
   @Column
