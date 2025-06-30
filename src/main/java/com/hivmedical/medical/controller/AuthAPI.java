@@ -33,6 +33,7 @@ import java.util.concurrent.TimeUnit;
 @RestController
 @RequestMapping("/api/auth")
 public class AuthAPI {
+
   private static final Logger logger = LoggerFactory.getLogger(AuthAPI.class);
 
   @Autowired
@@ -127,16 +128,19 @@ public class AuthAPI {
     try {
       UserEntity user = userService.getUserByEmail(request.getEmail());
       if (user == null) {
+        logger.warn("Login failed: Email {} not found", request.getEmail());
         response.put("success", false);
         response.put("message", "Email không tồn tại");
         return ResponseEntity.badRequest().body(response);
       }
       if (!user.isEnabled()) {
+        logger.warn("Login failed: Account {} not verified or OTP incomplete", request.getEmail());
         response.put("success", false);
         response.put("message", "Tài khoản chưa xác thực hoặc chưa hoàn tất đăng ký OTP!");
         return ResponseEntity.badRequest().body(response);
       }
       if (!passwordEncoder.matches(request.getPassword(), user.getPasswordHash())) {
+        logger.warn("Login failed: Incorrect password for email {}", request.getEmail());
         response.put("success", false);
         response.put("message", "Mật khẩu không đúng");
         return ResponseEntity.badRequest().body(response);
@@ -149,13 +153,17 @@ public class AuthAPI {
           .withExpiresAt(new Date(System.currentTimeMillis() + TimeUnit.DAYS.toMillis(1)))
           .sign(algorithm);
 
+      logger.info("Generated JWT for user {}: {}", user.getUsername(), jwt);
+      logger.debug("Token claims - username: {}, role: {}, expiresAt: {}",
+          user.getUsername(), user.getRole().name(), new Date(System.currentTimeMillis() + TimeUnit.DAYS.toMillis(1)));
+
       response.put("success", true);
       response.put("message", "Đăng nhập thành công");
       response.put("token", jwt);
       response.put("role", user.getRole().name());
       return ResponseEntity.ok(response);
     } catch (Exception e) {
-      logger.error("Login failed for email {}: {}", request.getEmail(), e.getMessage());
+      logger.error("Login failed for email {}: {}", request.getEmail(), e.getMessage(), e);
       response.put("success", false);
       response.put("message", "Đăng nhập thất bại: " + e.getMessage());
       return ResponseEntity.badRequest().body(response);
@@ -163,23 +171,29 @@ public class AuthAPI {
   }
 
   @PostMapping("/verify")
-  public ResponseEntity<Map<String, Object>> verify(@RequestHeader(HttpHeaders.AUTHORIZATION) String auth) {
+  public ResponseEntity<Map<String, Object>> verify(@RequestHeader(value = HttpHeaders.AUTHORIZATION, required = false) String auth) {
     logger.info("Verifying token: {}", auth);
     Map<String, Object> response = new HashMap<>();
+    if (auth == null || !auth.startsWith("Bearer ")) {
+      logger.warn("Invalid or missing Authorization header: {}", auth);
+      response.put("success", false);
+      response.put("message", "Missing or invalid Authorization header");
+      return ResponseEntity.status(400).body(response);
+    }
     try {
-        if (!auth.startsWith("Bearer ")) {
-        response.put("success", false);
-        response.put("message", "Định dạng token không hợp lệ");
-        return ResponseEntity.status(401).body(response);
-      }
       String token = auth.substring(7);
+      logger.debug("Extracted token: {}", token);
+
       Algorithm algorithm = Algorithm.HMAC256(jwtSecret);
       JWTVerifier verifier = JWT.require(algorithm).build();
       DecodedJWT jwt = verifier.verify(token);
 
       String username = jwt.getClaim("username").asString();
       String role = jwt.getClaim("role").asString();
+      logger.info("Token verified - username: {}, role: {}", username, role);
+
       if (!userRepository.existsByUsername(username)) {
+        logger.warn("User not found for username: {}", username);
         response.put("success", false);
         response.put("message", "Người dùng không tồn tại");
         return ResponseEntity.status(401).body(response);
@@ -189,12 +203,12 @@ public class AuthAPI {
       response.put("role", role);
       return ResponseEntity.ok(response);
     } catch (JWTVerificationException e) {
-      logger.error("Token verification failed: {}", e.getMessage());
+      logger.error("Token verification failed: {}", e.getMessage(), e);
       response.put("success", false);
       response.put("message", "Token không hợp lệ hoặc đã hết hạn: " + e.getMessage());
       return ResponseEntity.status(401).body(response);
     } catch (Exception e) {
-      logger.error("Unexpected error during token verification: {}", e.getMessage());
+      logger.error("Unexpected error during token verification: {}", e.getMessage(), e);
       response.put("success", false);
       response.put("message", "Lỗi không xác định: " + e.getMessage());
       return ResponseEntity.status(500).body(response);

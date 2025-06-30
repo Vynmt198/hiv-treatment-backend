@@ -49,6 +49,7 @@ public class DoctorController {
     return ResponseEntity.ok(schedule);
   }
 
+
 //  @GetMapping("/patients")
 //  @PreAuthorize("hasRole('DOCTOR')")
 //  public ResponseEntity<String> getPatients() {
