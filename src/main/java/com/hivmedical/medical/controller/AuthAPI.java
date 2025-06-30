@@ -150,17 +150,20 @@ public class AuthAPI {
       String jwt = JWT.create()
           .withClaim("username", user.getUsername())
           .withClaim("role", user.getRole().name())
+          .withClaim("fullName", user.getFullName() != null ? user.getFullName() : user.getUsername())
           .withExpiresAt(new Date(System.currentTimeMillis() + TimeUnit.DAYS.toMillis(1)))
           .sign(algorithm);
 
       logger.info("Generated JWT for user {}: {}", user.getUsername(), jwt);
-      logger.debug("Token claims - username: {}, role: {}, expiresAt: {}",
-          user.getUsername(), user.getRole().name(), new Date(System.currentTimeMillis() + TimeUnit.DAYS.toMillis(1)));
+      logger.debug("Token claims - username: {}, role: {}, fullName: {}, expiresAt: {}",
+          user.getUsername(), user.getRole().name(), user.getFullName(),
+          new Date(System.currentTimeMillis() + TimeUnit.DAYS.toMillis(1)));
 
       response.put("success", true);
       response.put("message", "Đăng nhập thành công");
       response.put("token", jwt);
       response.put("role", user.getRole().name());
+      response.put("fullName", user.getFullName() != null ? user.getFullName() : user.getUsername());
       return ResponseEntity.ok(response);
     } catch (Exception e) {
       logger.error("Login failed for email {}: {}", request.getEmail(), e.getMessage(), e);
@@ -190,17 +193,16 @@ public class AuthAPI {
 
       String username = jwt.getClaim("username").asString();
       String role = jwt.getClaim("role").asString();
-      logger.info("Token verified - username: {}, role: {}", username, role);
+      String fullName = jwt.getClaim("fullName").asString();
+      logger.info("Token verified - username: {}, role: {}, fullName: {}", username, role, fullName);
 
-      if (!userRepository.existsByUsername(username)) {
-        logger.warn("User not found for username: {}", username);
-        response.put("success", false);
-        response.put("message", "Người dùng không tồn tại");
-        return ResponseEntity.status(401).body(response);
-      }
+      // Lấy thông tin từ cơ sở dữ liệu để đảm bảo fullName chính xác
+      UserEntity user = userRepository.findByUsername(username)
+          .orElseThrow(() -> new RuntimeException("User not found"));
       response.put("success", true);
       response.put("username", username);
       response.put("role", role);
+      response.put("fullName", user.getFullName() != null ? user.getFullName() : username);
       return ResponseEntity.ok(response);
     } catch (JWTVerificationException e) {
       logger.error("Token verification failed: {}", e.getMessage(), e);

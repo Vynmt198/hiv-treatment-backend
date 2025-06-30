@@ -1,5 +1,6 @@
 package com.hivmedical.medical.config;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Info;
 import io.swagger.v3.oas.models.security.SecurityRequirement;
@@ -24,5 +25,13 @@ public class OpenApiConfig {
                 .scheme("bearer")
                 .bearerFormat("JWT")));
 
+  }
+
+  @Configuration
+  public class AppConfig {
+    @Bean
+    public ObjectMapper objectMapper() {
+      return new ObjectMapper();
+    }
   }
 }

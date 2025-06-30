@@ -4,7 +4,6 @@ import com.hivmedical.medical.security.JwtAuthenticationFilter;
 import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -44,9 +43,13 @@ public class SecurityConfig {
         .authorizeHttpRequests(auth -> {
           logger.info("Setting up authorization rules");
           auth
-              .requestMatchers("/api/auth/**", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
+              .requestMatchers("/api/auth/**", "/swagger-ui/**", "/v3/api-docs/**", "/error").permitAll()
               .requestMatchers(HttpMethod.GET, "/api/doctors", "/api/doctors/**").permitAll()
               .requestMatchers(HttpMethod.POST, "/api/appointments").permitAll()
+              .requestMatchers(HttpMethod.GET, "/api/services", "/api/services/**").permitAll()
+              .requestMatchers(HttpMethod.POST, "/api/services").hasRole("ADMIN")
+              .requestMatchers(HttpMethod.PUT, "/api/services/**").hasRole("ADMIN")
+              .requestMatchers(HttpMethod.DELETE, "/api/services/**").hasRole("ADMIN")
               .requestMatchers("/api/appointments/me", "/api/appointments/patient/**").hasRole("PATIENT")
               .requestMatchers("/api/admin/**").hasRole("ADMIN")
               .requestMatchers("/api/doctor/**").hasRole("DOCTOR")
@@ -56,7 +59,7 @@ public class SecurityConfig {
         .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
         .exceptionHandling(exception -> exception
             .accessDeniedHandler((request, response, accessDeniedException) -> {
-              logger.error("Access denied to {}: {}", request.getRequestURI(), accessDeniedException.getMessage(), accessDeniedException);
+            ;  logger.error("Access denied to {}: {}", request.getRequestURI(), accessDeniedException.getMessage(), accessDeniedException);
               response.setContentType("application/json");
               response.setStatus(HttpServletResponse.SC_FORBIDDEN);
               response.getWriter().write("{\"error\": \"Access denied\", \"details\": \"" + accessDeniedException.getMessage() + "\"}");
