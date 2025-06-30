@@ -11,7 +11,6 @@ import jakarta.persistence.Table;
 @Entity
 @Table(name = "Doctor")
 public class Doctor {
-
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
@@ -20,21 +19,18 @@ public class Doctor {
   private String fullName;
 
   private String specialization;
-
   private String qualification;
-
   private String email;
-
   private String phoneNumber;
-
   private String workingSchedule;
 
+  @Column
+  private String imageUrl;
 
-  public Doctor() {
-  }
+  public Doctor() {}
 
-  public Doctor(Long id, String fullName, String specialization, String qualification, String email,
-      String phoneNumber, String workingSchedule) {
+  public Doctor(Long id, String fullName, String specialization, String qualification,
+      String email, String phoneNumber, String workingSchedule, String imageUrl) {
     this.id = id;
     this.fullName = fullName;
     this.specialization = specialization;
@@ -42,61 +38,30 @@ public class Doctor {
     this.email = email;
     this.phoneNumber = phoneNumber;
     this.workingSchedule = workingSchedule;
+    this.imageUrl = imageUrl;
   }
 
-  public Long getId() {
-    return id;
-  }
+  public Long getId() { return id; }
+  public void setId(Long id) { this.id = id; }
 
-  public void setId(Long id) {
-    this.id = id;
-  }
+  public String getFullName() { return fullName; }
+  public void setFullName(String fullName) { this.fullName = fullName; }
 
-  public String getFullName() {
-    return fullName;
-  }
+  public String getSpecialization() { return specialization; }
+  public void setSpecialization(String specialization) { this.specialization = specialization; }
 
-  public void setFullName(String fullName) {
-    this.fullName = fullName;
-  }
+  public String getQualification() { return qualification; }
+  public void setQualification(String qualification) { this.qualification = qualification; }
 
-  public String getSpecialization() {
-    return specialization;
-  }
+  public String getEmail() { return email; }
+  public void setEmail(String email) { this.email = email; }
 
-  public void setSpecialization(String specialization) {
-    this.specialization = specialization;
-  }
+  public String getPhoneNumber() { return phoneNumber; }
+  public void setPhoneNumber(String phoneNumber) { this.phoneNumber = phoneNumber; }
 
-  public String getQualification() {
-    return qualification;
-  }
+  public String getWorkingSchedule() { return workingSchedule; }
+  public void setWorkingSchedule(String workingSchedule) { this.workingSchedule = workingSchedule; }
 
-  public void setQualification(String qualification) {
-    this.qualification = qualification;
-  }
-
-  public String getEmail() {
-    return email;
-  }
-
-  public void setEmail(String email) {
-    this.email = email;
-  }
-
-  public String getPhoneNumber() {
-    return phoneNumber;
-  }
-
-  public void setPhoneNumber(String phoneNumber) {
-    this.phoneNumber = phoneNumber;
-  }
-
-  public String getWorkingSchedule() {
-    return workingSchedule;
-  }
-
-  public void setWorkingSchedule(String workingSchedule) {
-    this.workingSchedule = workingSchedule;
-  }
+  public String getImageUrl() { return imageUrl; }
+  public void setImageUrl(String imageUrl) { this.imageUrl = imageUrl; }
 }

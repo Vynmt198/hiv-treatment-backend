@@ -1,6 +1,9 @@
 package com.hivmedical.medical.config;
 
 import com.hivmedical.medical.security.JwtAuthenticationFilter;
+import jakarta.servlet.http.HttpServletResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -19,6 +22,7 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 @Configuration
 public class SecurityConfig {
+  private static final Logger logger = LoggerFactory.getLogger(SecurityConfig.class);
 
   @Bean
   public BCryptPasswordEncoder passwordEncoder() {
@@ -32,21 +36,37 @@ public class SecurityConfig {
 
   @Bean
   public SecurityFilterChain filterChain(HttpSecurity http, JwtAuthenticationFilter jwtAuthenticationFilter) throws Exception {
+    logger.info("Configuring SecurityFilterChain with rules");
     return http
         .cors(cors -> cors.configurationSource(corsConfigurationSource()))
         .csrf(csrf -> csrf.disable())
         .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-        .authorizeHttpRequests(auth -> auth
-            .requestMatchers("/api/auth/**", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
-            .requestMatchers(HttpMethod.GET, "/api/doctors", "/api/doctors/**").permitAll()
-            .requestMatchers(HttpMethod.POST, "/api/appointments").permitAll()
-            .requestMatchers("/api/appointments/me", "/api/appointments/patient/**").hasRole("PATIENT")
-            .requestMatchers("/api/admin/**").hasRole("ADMIN")
-            .requestMatchers("/api/doctor/**").hasRole("DOCTOR")
-            .requestMatchers("/api/patient/**").hasRole("PATIENT")
-            .anyRequest().authenticated()
-        )
+        .authorizeHttpRequests(auth -> {
+          logger.info("Setting up authorization rules");
+          auth
+              .requestMatchers("/api/auth/**", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
+              .requestMatchers(HttpMethod.GET, "/api/doctors", "/api/doctors/**").permitAll()
+              .requestMatchers(HttpMethod.POST, "/api/appointments").permitAll()
+              .requestMatchers("/api/appointments/me", "/api/appointments/patient/**").hasRole("PATIENT")
+              .requestMatchers("/api/admin/**").hasRole("ADMIN")
+              .requestMatchers("/api/doctor/**").hasRole("DOCTOR")
+              .requestMatchers("/api/patient/**").hasRole("PATIENT")
+              .anyRequest().authenticated();
+        })
         .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+        .exceptionHandling(exception -> exception
+            .accessDeniedHandler((request, response, accessDeniedException) -> {
+              logger.error("Access denied to {}: {}", request.getRequestURI(), accessDeniedException.getMessage(), accessDeniedException);
+              response.setContentType("application/json");
+              response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+              response.getWriter().write("{\"error\": \"Access denied\", \"details\": \"" + accessDeniedException.getMessage() + "\"}");
+            })
+            .authenticationEntryPoint((request, response, authException) -> {
+              logger.error("Authentication failed for {}: {}", request.getRequestURI(), authException.getMessage(), authException);
+              response.setContentType("application/json");
+              response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+              response.getWriter().write("{\"error\": \"Authentication failed\", \"details\": \"" + authException.getMessage() + "\"}");
+            }))
         .build();
   }
 
@@ -65,6 +85,7 @@ public class SecurityConfig {
 
   @Bean
   public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
+    logger.info("Initializing AuthenticationManager");
     return authenticationConfiguration.getAuthenticationManager();
   }
 }

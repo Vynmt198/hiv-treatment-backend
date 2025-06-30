@@ -1,6 +1,5 @@
 package com.hivmedical.medical.service;
 
-
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hivmedical.medical.dto.DoctorDTO;
@@ -16,13 +15,11 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-
 @Service
 public class DoctorService {
   private final DoctorRepository doctorRepository;
   private final ScheduleRepository scheduleRepository;
   private final ObjectMapper objectMapper;
-
 
   public DoctorService(DoctorRepository doctorRepository, ScheduleRepository scheduleRepository,
       ObjectMapper objectMapper) {
@@ -42,7 +39,6 @@ public class DoctorService {
     } else {
       doctors = doctorRepository.findAll(pageable);
     }
-
     return doctors.map(this::convertToDTO);
   }
 
@@ -67,6 +63,7 @@ public class DoctorService {
     dto.setEmail(doctor.getEmail());
     dto.setPhoneNumber(doctor.getPhoneNumber());
     dto.setWorkingSchedule(doctor.getWorkingSchedule());
+    dto.setImageUrl(doctor.getImageUrl());
     return dto;
   }
 
