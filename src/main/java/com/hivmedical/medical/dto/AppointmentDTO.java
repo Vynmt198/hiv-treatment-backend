@@ -11,6 +11,9 @@ public class AppointmentDTO {
   @NotNull(message = "Service ID is required")
   private Long serviceId;
 
+  @NotNull(message = "Doctor ID is required")
+  private Long doctorId;
+
   @NotBlank(message = "Appointment type is required")
   private String appointmentType; // FIRST_VISIT hoặc FOLLOW_UP
 
@@ -21,19 +24,23 @@ public class AppointmentDTO {
   private String userUsername; // Username của người dùng
 
   private String serviceName; // Tên dịch vụ
+  private String doctorName;
 
   public AppointmentDTO() {
   }
 
-  public AppointmentDTO(Long id, Long serviceId, String appointmentType, String appointmentDate,
-      String status, String userUsername, String serviceName) {
+  public AppointmentDTO(Long id, Long serviceId, Long doctorId, String appointmentType,
+      String appointmentDate, String status, String userUsername, String serviceName,
+      String doctorName) {
     this.id = id;
     this.serviceId = serviceId;
+    this.doctorId = doctorId;
     this.appointmentType = appointmentType;
     this.appointmentDate = appointmentDate;
     this.status = status;
     this.userUsername = userUsername;
     this.serviceName = serviceName;
+    this.doctorName = doctorName;
   }
 
   public Long getId() {
@@ -50,6 +57,14 @@ public class AppointmentDTO {
 
   public void setServiceId(Long serviceId) {
     this.serviceId = serviceId;
+  }
+
+  public Long getDoctorId() {
+    return doctorId;
+  }
+
+  public void setDoctorId(Long doctorId) {
+    this.doctorId = doctorId;
   }
 
   public String getAppointmentType() {
@@ -90,5 +105,13 @@ public class AppointmentDTO {
 
   public void setServiceName(String serviceName) {
     this.serviceName = serviceName;
+  }
+
+  public String getDoctorName() {
+    return doctorName;
+  }
+
+  public void setDoctorName(String doctorName) {
+    this.doctorName = doctorName;
   }
 }
