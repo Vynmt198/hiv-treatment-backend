@@ -67,6 +67,9 @@ public class UserEntity {
     if (role == null) {
       role = Role.PATIENT;
     }
+    if (username == null && email != null) {
+      username = email; // Đồng bộ username với email
+    }
   }
 
   public UserEntity() {
