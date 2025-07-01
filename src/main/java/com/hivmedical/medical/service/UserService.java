@@ -2,34 +2,41 @@ package com.hivmedical.medical.service;
 
 import com.hivmedical.medical.entitty.UserEntity;
 import com.hivmedical.medical.entitty.VerificationToken;
+import com.hivmedical.medical.entitty.UserEntity;
+import com.hivmedical.medical.entitty.VerificationToken;
 import com.hivmedical.medical.repository.UserRepositoty;
 import com.hivmedical.medical.repository.VerificationTokenRepository;
-import java.security.SecureRandom;
-import java.time.LocalDateTime;
-import java.util.Optional;
-import java.util.Random;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import java.time.LocalDateTime;
+import java.util.Optional;
+import java.security.SecureRandom;
 
 @Service
 public class UserService {
 
   @Autowired
-  private UserRepositoty userRepositoty;
+  private UserRepositoty userRepository; // Sửa chính tả từ userRepositoty
 
   @Autowired
   private VerificationTokenRepository tokenRepository;
 
   @Autowired
   private BCryptPasswordEncoder passwordEncoder;
+
   @Autowired
   private EmailService emailService;
 
   public boolean isEmailExists(String email) {
-    return userRepositoty.existsByEmail(email);
+    return userRepository.existsByEmail(email);
   }
+
   public void registerUserWithOtp(UserEntity user) {
+    if (user.getEmail() == null || user.getEmail().trim().isEmpty()) {
+      throw new IllegalArgumentException("Email không được để trống");
+    }
     String otp = generateOtp();
     VerificationToken token = new VerificationToken();
     token.setEmail(user.getEmail());
@@ -42,24 +49,46 @@ public class UserService {
   }
 
   public boolean verifyOtpAndRegister(String email, String otp) {
-    Optional<VerificationToken> tokenOpt = tokenRepository.findByEmailAndType(email, "EMAIL_VERIFICATION");
-    if (tokenOpt.isPresent() && !tokenOpt.get().getExpiryDate().isBefore(LocalDateTime.now()) && tokenOpt.get().getToken().equals(otp)) {
-      tokenRepository.delete(tokenOpt.get());
-      return true;
+    if (email == null || email.trim().isEmpty() || otp == null || otp.trim().isEmpty()) {
+      throw new IllegalArgumentException("Email và OTP không được để trống");
     }
-    return false;
+    Optional<VerificationToken> tokenOpt = tokenRepository.findByEmailAndType(email, "EMAIL_VERIFICATION");
+    if (!tokenOpt.isPresent()) {
+      throw new IllegalArgumentException("Không tìm thấy OTP cho email này");
+    }
+    VerificationToken token = tokenOpt.get();
+    if (token.getExpiryDate().isBefore(LocalDateTime.now())) {
+      tokenRepository.delete(token);
+      throw new IllegalArgumentException("OTP đã hết hạn");
+    }
+    if (!token.getToken().equals(otp)) {
+      throw new IllegalArgumentException("OTP không đúng");
+    }
+    tokenRepository.delete(token);
+    return true;
   }
 
   public UserEntity getUserByEmail(String email) {
-    return userRepositoty.findByEmail(email).orElse(null);
+    return userRepository.findByEmail(email).orElse(null);
   }
 
   public void sendPasswordResetOtp(String email, String newPassword) {
+    if (email == null || email.trim().isEmpty()) {
+      throw new IllegalArgumentException("Email không được để trống");
+    }
+    if (newPassword == null || newPassword.trim().isEmpty()) {
+      throw new IllegalArgumentException("Mật khẩu mới không được để trống");
+    }
+    if (!userRepository.existsByEmail(email)) {
+      throw new IllegalArgumentException("Email không tồn tại trong hệ thống");
+    }
+    // Xóa token OTP cũ
+    tokenRepository.deleteByEmailAndType(email, "PASSWORD_RESET_OTP");
     String otp = generateOtp();
     VerificationToken token = new VerificationToken();
     token.setEmail(email);
     token.setToken(otp);
-    token.setUserInfo(passwordEncoder.encode(newPassword)); // Lưu mật khẩu đã mã hóa
+    token.setUserInfo(passwordEncoder.encode(newPassword));
     token.setExpiryDate(LocalDateTime.now().plusMinutes(10));
     token.setType("PASSWORD_RESET_OTP");
     tokenRepository.save(token);
@@ -67,17 +96,27 @@ public class UserService {
   }
 
   public boolean verifyOtpAndResetPassword(String email, String otp) {
-    Optional<VerificationToken> tokenOpt = tokenRepository.findByEmailAndType(email, "PASSWORD_RESET_OTP");
-    if (tokenOpt.isPresent() && !tokenOpt.get().getExpiryDate().isBefore(LocalDateTime.now()) && tokenOpt.get().getToken().equals(otp)) {
-      UserEntity user = userRepositoty.findByEmail(email).orElse(null);
-      if (user != null) {
-        user.setPasswordHash(tokenOpt.get().getUserInfo());
-        userRepositoty.save(user);
-        tokenRepository.delete(tokenOpt.get());
-        return true;
-      }
+    if (email == null || email.trim().isEmpty() || otp == null || otp.trim().isEmpty()) {
+      throw new IllegalArgumentException("Email và OTP không được để trống");
     }
-    return false;
+    Optional<VerificationToken> tokenOpt = tokenRepository.findByEmailAndType(email, "PASSWORD_RESET_OTP");
+    if (!tokenOpt.isPresent()) {
+      throw new IllegalArgumentException("Không tìm thấy OTP cho email này");
+    }
+    VerificationToken token = tokenOpt.get();
+    if (token.getExpiryDate().isBefore(LocalDateTime.now())) {
+      tokenRepository.delete(token);
+      throw new IllegalArgumentException("OTP đã hết hạn");
+    }
+    if (!token.getToken().equals(otp)) {
+      throw new IllegalArgumentException("OTP không đúng");
+    }
+    UserEntity user = userRepository.findByEmail(email)
+        .orElseThrow(() -> new IllegalArgumentException("Người dùng không tồn tại"));
+    user.setPasswordHash(token.getUserInfo());
+    userRepository.save(user);
+    tokenRepository.delete(token);
+    return true;
   }
 
   private String generateOtp() {
