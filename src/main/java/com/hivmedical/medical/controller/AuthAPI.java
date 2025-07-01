@@ -22,6 +22,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.validation.BindingResult;
+import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.*;
 
 import jakarta.validation.Valid;
@@ -218,16 +219,27 @@ public class AuthAPI {
   }
 
   @PostMapping("/forgot-password")
-  public ResponseEntity<Map<String, Object>> forgotPassword(@RequestBody ForgotPasswordOtpRequest req) {
+  public ResponseEntity<Map<String, Object>> forgotPassword(@Valid @RequestBody ForgotPasswordOtpRequest req, BindingResult result) {
     logger.info("Processing forgot password request for email: {}", req.getEmail());
     Map<String, Object> response = new HashMap<>();
+    if (result.hasErrors()) {
+      FieldError error = result.getFieldError();
+      response.put("success", false);
+      response.put("message", error != null ? error.getDefaultMessage() : "Dữ liệu đầu vào không hợp lệ");
+      return ResponseEntity.badRequest().body(response);
+    }
     try {
       userService.sendPasswordResetOtp(req.getEmail(), req.getNewPassword());
       response.put("success", true);
       response.put("message", "Nếu email hợp lệ, mã OTP đã được gửi về email. Hãy kiểm tra hộp thư!");
       return ResponseEntity.ok(response);
-    } catch (Exception e) {
+    } catch (IllegalArgumentException e) {
       logger.error("Failed to send OTP for email {}: {}", req.getEmail(), e.getMessage());
+      response.put("success", false);
+      response.put("message", e.getMessage());
+      return ResponseEntity.badRequest().body(response);
+    } catch (Exception e) {
+      logger.error("Unexpected error sending OTP for email {}: {}", req.getEmail(), e.getMessage());
       response.put("success", false);
       response.put("message", "Gửi OTP thất bại: " + e.getMessage());
       return ResponseEntity.badRequest().body(response);
@@ -235,18 +247,36 @@ public class AuthAPI {
   }
 
   @PostMapping("/reset-password-otp")
-  public ResponseEntity<Map<String, Object>> resetPasswordOtp(@RequestBody VerifyOtpRequest req) {
+  public ResponseEntity<Map<String, Object>> resetPasswordOtp(@Valid @RequestBody VerifyOtpRequest req, BindingResult result) {
     logger.info("Processing reset password OTP for email: {}", req.getEmail());
+    Map<String, Object> response = new HashMap<>();
+    if (result.hasErrors()) {
+      FieldError error = result.getFieldError();
+      response.put("success", false);
+      response.put("message", error != null ? error.getDefaultMessage() : "Dữ liệu đầu vào không hợp lệ");
+      return ResponseEntity.badRequest().body(response);
+    }
     try {
       boolean ok = userService.verifyOtpAndResetPassword(req.getEmail(), req.getOtp());
       if (ok) {
-        return ResponseEntity.ok(Map.of("success", true, "message", "Đổi mật khẩu thành công!"));
+        response.put("success", true);
+        response.put("message", "Đổi mật khẩu thành công!");
+        return ResponseEntity.ok(response);
       } else {
-        return ResponseEntity.badRequest().body(Map.of("success", false, "message", "OTP không đúng hoặc đã hết hạn!"));
+        response.put("success", false);
+        response.put("message", "OTP không đúng hoặc đã hết hạn!");
+        return ResponseEntity.badRequest().body(response);
       }
-    } catch (Exception e) {
+    } catch (IllegalArgumentException e) {
       logger.error("Reset password OTP failed for email {}: {}", req.getEmail(), e.getMessage());
-      return ResponseEntity.badRequest().body(Map.of("success", false, "message", "Đổi mật khẩu thất bại: " + e.getMessage()));
+      response.put("success", false);
+      response.put("message", e.getMessage());
+      return ResponseEntity.badRequest().body(response);
+    } catch (Exception e) {
+      logger.error("Unexpected error resetting password for email {}: {}", req.getEmail(), e.getMessage());
+      response.put("success", false);
+      response.put("message", "Đổi mật khẩu thất bại: " + e.getMessage());
+      return ResponseEntity.badRequest().body(response);
     }
   }
 

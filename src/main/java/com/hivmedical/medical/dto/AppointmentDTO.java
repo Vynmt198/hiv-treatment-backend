@@ -1,45 +1,39 @@
 package com.hivmedical.medical.dto;
 
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Pattern;
-import java.time.LocalDate;
-import java.time.LocalTime;
+import lombok.Data;
 
+@Data
 public class AppointmentDTO {
   private Long id;
-  private Long userId;
 
-  @NotNull(message = "Doctor ID is required")
-  private Long doctorId;
+  @NotNull(message = "Service ID is required")
+  private Long serviceId;
 
-  @NotNull(message = "Date is required")
-  private LocalDate date;
+  @NotBlank(message = "Appointment type is required")
+  private String appointmentType; // FIRST_VISIT hoặc FOLLOW_UP
 
-  @NotNull(message = "Time is required")
-  private LocalTime time;
+  private String appointmentDate; // ISO 8601 format (e.g., "2025-07-01T10:00:00")
 
-  @NotNull(message = "Type is required")
-  @Pattern(regexp = "EXPLORATION|CONSULTATION", message = "Type must be EXPLORATION or CONSULTATION")
-  private String type;
-
-  private boolean isAnonymous;
   private String status;
-  private String referenceCode;
+
+  private String userUsername; // Username của người dùng
+
+  private String serviceName; // Tên dịch vụ
 
   public AppointmentDTO() {
   }
 
-  public AppointmentDTO(Long id, Long userId, Long doctorId, LocalDate date, LocalTime time,
-      String type, boolean isAnonymous, String status, String referenceCode) {
+  public AppointmentDTO(Long id, Long serviceId, String appointmentType, String appointmentDate,
+      String status, String userUsername, String serviceName) {
     this.id = id;
-    this.userId = userId;
-    this.doctorId = doctorId;
-    this.date = date;
-    this.time = time;
-    this.type = type;
-    this.isAnonymous = isAnonymous;
+    this.serviceId = serviceId;
+    this.appointmentType = appointmentType;
+    this.appointmentDate = appointmentDate;
     this.status = status;
-    this.referenceCode = referenceCode;
+    this.userUsername = userUsername;
+    this.serviceName = serviceName;
   }
 
   public Long getId() {
@@ -50,52 +44,28 @@ public class AppointmentDTO {
     this.id = id;
   }
 
-  public Long getUserId() {
-    return userId;
+  public Long getServiceId() {
+    return serviceId;
   }
 
-  public void setUserId(Long userId) {
-    this.userId = userId;
+  public void setServiceId(Long serviceId) {
+    this.serviceId = serviceId;
   }
 
-  public Long getDoctorId() {
-    return doctorId;
+  public String getAppointmentType() {
+    return appointmentType;
   }
 
-  public void setDoctorId(Long doctorId) {
-    this.doctorId = doctorId;
+  public void setAppointmentType(String appointmentType) {
+    this.appointmentType = appointmentType;
   }
 
-  public LocalDate getDate() {
-    return date;
+  public String getAppointmentDate() {
+    return appointmentDate;
   }
 
-  public void setDate(LocalDate date) {
-    this.date = date;
-  }
-
-  public LocalTime getTime() {
-    return time;
-  }
-
-  public void setTime(LocalTime time) {
-    this.time = time;
-  }
-
-  public String getType() {
-    return type;
-  }
-
-  public void setType(String type) {
-    this.type = type;
-  }
-
-  public boolean isAnonymous() {
-    return isAnonymous;
-  }
-
-  public void setAnonymous(boolean anonymous) {
-    isAnonymous = anonymous;
+  public void setAppointmentDate(String appointmentDate) {
+    this.appointmentDate = appointmentDate;
   }
 
   public String getStatus() {
@@ -106,11 +76,19 @@ public class AppointmentDTO {
     this.status = status;
   }
 
-  public String getReferenceCode() {
-    return referenceCode;
+  public String getUserUsername() {
+    return userUsername;
   }
 
-  public void setReferenceCode(String referenceCode) {
-    this.referenceCode = referenceCode;
+  public void setUserUsername(String userUsername) {
+    this.userUsername = userUsername;
+  }
+
+  public String getServiceName() {
+    return serviceName;
+  }
+
+  public void setServiceName(String serviceName) {
+    this.serviceName = serviceName;
   }
 }

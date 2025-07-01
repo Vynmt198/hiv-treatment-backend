@@ -1,7 +1,12 @@
 package com.hivmedical.medical.dto;
 
+import jakarta.validation.constraints.NotBlank;
+
 public class ForgotPasswordOtpRequest {
+  @NotBlank(message = "Email không được để trống")
   private String email;
+
+  @NotBlank(message = "Mật khẩu mới không được để trống")
   private String newPassword;
 
   public ForgotPasswordOtpRequest() {}
