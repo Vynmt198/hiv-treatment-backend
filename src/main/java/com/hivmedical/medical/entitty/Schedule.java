@@ -7,6 +7,8 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.PrePersist;
+import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -30,10 +32,50 @@ public class Schedule {
   @Column(columnDefinition = "NVARCHAR(MAX)")
   private String timeSlots;
 
+  @Column(nullable = false)
+  private LocalDateTime startTime;
+
+  @Column(nullable = false)
+  private LocalDateTime endTime;
+
+  @Column(nullable = false)
+  private boolean isAvailable;
+
+  @Column( nullable = false)
+  private LocalDateTime createdAt;
+
+  @Column( nullable = false)
+  private LocalDateTime updatedAt;
+
+  @PrePersist
+  public void onCreate() {
+    createdAt = LocalDateTime.now();
+    updatedAt = LocalDateTime.now();
+    if (!isAvailable) {
+      isAvailable = true;
+    }
+  }
+  @PreUpdate
+  public void onUpdate() {
+    updatedAt = LocalDateTime.now();
+  }
+
   public Schedule() {
   }
 
-
+  public Schedule(Long id, Doctor doctor, LocalDate date, String timeSlots, LocalDateTime startTime,
+      LocalDateTime endTime, boolean isAvailable, LocalDateTime createdAt,
+      LocalDateTime updatedAt) {
+    this.id = id;
+    this.doctor = doctor;
+    this.date = date;
+    this.timeSlots = timeSlots;
+    this.startTime = startTime;
+    this.endTime = endTime;
+    this.isAvailable = isAvailable;
+    this.createdAt = createdAt;
+    this.updatedAt = updatedAt;
+  }
 
   public Long getId() {
     return id;
@@ -65,5 +107,45 @@ public class Schedule {
 
   public void setTimeSlots(String timeSlots) {
     this.timeSlots = timeSlots;
+  }
+
+  public LocalDateTime getStartTime() {
+    return startTime;
+  }
+
+  public void setStartTime(LocalDateTime startTime) {
+    this.startTime = startTime;
+  }
+
+  public LocalDateTime getEndTime() {
+    return endTime;
+  }
+
+  public void setEndTime(LocalDateTime endTime) {
+    this.endTime = endTime;
+  }
+
+  public boolean isAvailable() {
+    return isAvailable;
+  }
+
+  public void setAvailable(boolean available) {
+    isAvailable = available;
+  }
+
+  public LocalDateTime getCreatedAt() {
+    return createdAt;
+  }
+
+  public void setCreatedAt(LocalDateTime createdAt) {
+    this.createdAt = createdAt;
+  }
+
+  public LocalDateTime getUpdatedAt() {
+    return updatedAt;
+  }
+
+  public void setUpdatedAt(LocalDateTime updatedAt) {
+    this.updatedAt = updatedAt;
   }
 }
