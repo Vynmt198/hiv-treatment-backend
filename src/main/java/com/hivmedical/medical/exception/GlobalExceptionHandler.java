@@ -1,6 +1,7 @@
 package com.hivmedical.medical.exception;
 
 import com.fasterxml.jackson.databind.JsonMappingException;
+import java.time.format.DateTimeParseException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -37,5 +38,18 @@ public class GlobalExceptionHandler {
     errorResponse.put("error", "Invalid JSON format in description");
     errorResponse.put("details", ex.getMessage());
     return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+  }
+
+  @ExceptionHandler(DateTimeParseException.class)
+  public ResponseEntity<String> handleDateTimeParseException(DateTimeParseException ex) {
+    return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+        .body("Định dạng ngày không hợp lệ: " + ex.getMessage());
+  }
+
+  @ExceptionHandler(Exception.class)
+  public ResponseEntity<String> handleGenericException(Exception ex) {
+    ex.printStackTrace(); // Log the exception for debugging
+    return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+        .body("Lỗi máy chủ: " + ex.getMessage());
   }
 }

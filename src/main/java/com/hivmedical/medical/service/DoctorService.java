@@ -9,8 +9,11 @@ import com.hivmedical.medical.entitty.Schedule;
 import com.hivmedical.medical.repository.DoctorRepository;
 import com.hivmedical.medical.repository.ScheduleRepository;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -20,6 +23,12 @@ public class DoctorService {
   private final DoctorRepository doctorRepository;
   private final ScheduleRepository scheduleRepository;
   private final ObjectMapper objectMapper;
+
+  private static final Logger logger = LoggerFactory.getLogger(DoctorService.class);
+
+  public List<Doctor> getAllDoctors() {
+    return doctorRepository.findAll();
+  }
 
   public DoctorService(DoctorRepository doctorRepository, ScheduleRepository scheduleRepository,
       ObjectMapper objectMapper) {
@@ -44,14 +53,8 @@ public class DoctorService {
 
   public DoctorDTO getDoctorById(Long id) {
     Doctor doctor = doctorRepository.findById(id)
-        .orElseThrow(() -> new RuntimeException("Doctor not found"));
+        .orElseThrow(() -> new RuntimeException("Bác sĩ với ID " + id + " không tồn tại"));
     return convertToDTO(doctor);
-  }
-
-  public List<ScheduleDTO> getDoctorSchedule(Long doctorId, String date) {
-    LocalDate localDate = LocalDate.parse(date);
-    List<Schedule> schedules = scheduleRepository.findByDoctorIdAndDate(doctorId, localDate);
-    return schedules.stream().map(this::convertToScheduleDTO).collect(Collectors.toList());
   }
 
   private DoctorDTO convertToDTO(Doctor doctor) {
@@ -71,13 +74,68 @@ public class DoctorService {
     ScheduleDTO dto = new ScheduleDTO();
     dto.setId(schedule.getId());
     dto.setDoctorId(schedule.getDoctor().getId());
-    dto.setDate(schedule.getDate());
+    dto.setDate(schedule.getDate() != null ? schedule.getDate().format(DateTimeFormatter.ISO_LOCAL_DATE) : null);
     try {
-      List<String> timeSlots = objectMapper.readValue(schedule.getTimeSlots(), new TypeReference<List<String>>() {});
+      List<String> timeSlots = objectMapper.readValue(schedule.getTimeSlots(), new TypeReference<List<String>>() {
+      });
       dto.setTimeSlots(timeSlots);
     } catch (Exception e) {
       throw new RuntimeException("Error parsing time slots", e);
     }
+    dto.setStartTime(
+        schedule.getStartTime() != null ? schedule.getStartTime().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME) : null);
+    dto.setEndTime(
+        schedule.getEndTime() != null ? schedule.getEndTime().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME) : null);
+    dto.setCreatedAt(
+        schedule.getCreatedAt() != null ? schedule.getCreatedAt().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME) : null);
+    dto.setUpdatedAt(
+        schedule.getUpdatedAt() != null ? schedule.getUpdatedAt().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME) : null);
+    dto.setAvailable(schedule.isAvailable());
     return dto;
+  }
+
+  public List<ScheduleDTO> getDoctorSchedule(Long id, String date) {
+    logger.debug("Fetching schedules for doctorId: {}, date: {}", id, date);
+    LocalDate localDate = (date != null) ? LocalDate.parse(date) : LocalDate.now();
+    List<Schedule> schedules = scheduleRepository.findByDoctorIdAndDate(id, localDate);
+    logger.debug("Found {} schedules in database for doctorId: {}", schedules.size(), id);
+    return schedules.stream()
+        .filter(schedule -> {
+          if (schedule.getStartTime() == null || schedule.getEndTime() == null) {
+            logger.warn("Schedule {} has null startTime or endTime", schedule.getId());
+            return false;
+          }
+          return schedule.isAvailable();
+        })
+        .map(schedule -> {
+          ScheduleDTO dto = new ScheduleDTO();
+          dto.setId(schedule.getId());
+          dto.setDoctorId(id);
+          dto.setDate(
+              schedule.getDate() != null ? schedule.getDate().format(java.time.format.DateTimeFormatter.ISO_LOCAL_DATE)
+                  : null);
+          dto.setTimeSlots(null); // Can be parsed if needed
+          dto.setStartTime(schedule.getStartTime() != null
+              ? schedule.getStartTime().format(java.time.format.DateTimeFormatter.ISO_LOCAL_DATE_TIME)
+              : null);
+          dto.setEndTime(schedule.getEndTime() != null
+              ? schedule.getEndTime().format(java.time.format.DateTimeFormatter.ISO_LOCAL_DATE_TIME)
+              : null);
+          dto.setAvailable(schedule.isAvailable());
+          dto.setCreatedAt(schedule.getCreatedAt() != null
+              ? schedule.getCreatedAt().format(java.time.format.DateTimeFormatter.ISO_LOCAL_DATE_TIME)
+              : null);
+          dto.setUpdatedAt(schedule.getUpdatedAt() != null
+              ? schedule.getUpdatedAt().format(java.time.format.DateTimeFormatter.ISO_LOCAL_DATE_TIME)
+              : null);
+          return dto;
+        })
+        .collect(Collectors.toList());
+  }
+
+  public List<ScheduleDTO> getAvailableDoctorSchedules(Long doctorId, String date) {
+    LocalDate localDate = LocalDate.parse(date);
+    List<Schedule> schedules = scheduleRepository.findByDoctorIdAndDateAndIsAvailableTrue(doctorId, localDate);
+    return schedules.stream().map(this::convertToScheduleDTO).toList();
   }
 }

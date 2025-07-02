@@ -3,10 +3,14 @@ package com.hivmedical.medical.controller;
 import com.hivmedical.medical.dto.DoctorDTO;
 import com.hivmedical.medical.dto.ScheduleDTO;
 import com.hivmedical.medical.service.DoctorService;
+import java.time.LocalDate;
 import java.util.List;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -18,6 +22,8 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/doctors")
 public class DoctorController {
+
+  private static final Logger logger = LoggerFactory.getLogger(DoctorController.class);
   private final DoctorService doctorService;
 
   public DoctorController(DoctorService doctorService) {
@@ -41,18 +47,19 @@ public class DoctorController {
     return ResponseEntity.ok(doctor);
   }
 
-  @GetMapping("/{id}/schedule")
-  public ResponseEntity<List<ScheduleDTO>> getDoctorSchedule(
+  @GetMapping("/{id}/schedules")
+  public ResponseEntity<List<ScheduleDTO>> getDoctorAvailableSchedules(
       @PathVariable Long id,
-      @RequestParam String date) {
-    List<ScheduleDTO> schedule = doctorService.getDoctorSchedule(id, date);
-    return ResponseEntity.ok(schedule);
+      @RequestParam(required = false) String date) {
+    logger.debug("Fetching available schedules for doctorId: {}, date: {}", id, date);
+    try {
+      LocalDate localDate = (date != null) ? LocalDate.parse(date) : LocalDate.now();
+      List<ScheduleDTO> schedules = doctorService.getAvailableDoctorSchedules(id, localDate.toString());
+      logger.debug("Retrieved {} available schedules for doctorId: {}", schedules.size(), id);
+      return ResponseEntity.ok(schedules);
+    } catch (Exception e) {
+      logger.error("Error fetching available schedules for doctorId: {} and date: {}", id, date, e);
+      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+    }
   }
-
-
-//  @GetMapping("/patients")
-//  @PreAuthorize("hasRole('DOCTOR')")
-//  public ResponseEntity<String> getPatients() {
-//    return ResponseEntity.ok("List of patients for doctor");
-//  }
 }

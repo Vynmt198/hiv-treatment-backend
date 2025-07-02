@@ -22,6 +22,9 @@ public class AppointmentEntity {
   @JoinColumn(nullable = false)
   private ServiceEntity service;
 
+  @ManyToOne
+  private Doctor doctor;
+
   @Column( nullable = false, columnDefinition = "NVARCHAR(50) COLLATE Vietnamese_CI_AS")
   private String appointmentType;
 
@@ -57,12 +60,13 @@ public class AppointmentEntity {
   public AppointmentEntity() {
   }
 
-  public AppointmentEntity(Long id, UserEntity user, ServiceEntity service, String appointmentType,
-      LocalDateTime appointmentDate, String status, LocalDateTime createdAt,
+  public AppointmentEntity(Long id, UserEntity user, ServiceEntity service, Doctor doctor,
+      String appointmentType, LocalDateTime appointmentDate, String status, LocalDateTime createdAt,
       LocalDateTime updatedAt) {
     this.id = id;
     this.user = user;
     this.service = service;
+    this.doctor = doctor;
     this.appointmentType = appointmentType;
     this.appointmentDate = appointmentDate;
     this.status = status;
@@ -132,5 +136,12 @@ public class AppointmentEntity {
 
   public void setUpdatedAt(LocalDateTime updatedAt) {
     this.updatedAt = updatedAt;
+  }
+
+  public Doctor getDoctor() {
+    return doctor;
+  }
+  public void setDoctor(Doctor doctor) {
+    this.doctor = doctor;
   }
 }
