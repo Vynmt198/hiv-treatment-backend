@@ -47,20 +47,19 @@ public class DoctorController {
     return ResponseEntity.ok(doctor);
   }
 
-  @GetMapping("/{id}/schedule")
-  public ResponseEntity<List<ScheduleDTO>> getDoctorSchedule(
+  @GetMapping("/{id}/schedules")
+  public ResponseEntity<List<ScheduleDTO>> getDoctorAvailableSchedules(
       @PathVariable Long id,
       @RequestParam(required = false) String date) {
-    logger.debug("Fetching schedules for doctorId: {}, date: {}", id, date);
+    logger.debug("Fetching available schedules for doctorId: {}, date: {}", id, date);
     try {
       LocalDate localDate = (date != null) ? LocalDate.parse(date) : LocalDate.now();
-      List<ScheduleDTO> schedules = doctorService.getDoctorSchedule(id, localDate.toString());
-      logger.debug("Retrieved {} schedules for doctorId: {}", schedules.size(), id);
+      List<ScheduleDTO> schedules = doctorService.getAvailableDoctorSchedules(id, localDate.toString());
+      logger.debug("Retrieved {} available schedules for doctorId: {}", schedules.size(), id);
       return ResponseEntity.ok(schedules);
     } catch (Exception e) {
-      logger.error("Error fetching schedules for doctorId: {} and date: {}", id, date, e);
-      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-          .body(null); // Temporary fallback
+      logger.error("Error fetching available schedules for doctorId: {} and date: {}", id, date, e);
+      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
     }
   }
 }

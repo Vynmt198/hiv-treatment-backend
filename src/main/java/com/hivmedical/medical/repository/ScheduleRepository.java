@@ -8,5 +8,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface ScheduleRepository extends JpaRepository<Schedule, Long> {
   List<Schedule> findByDoctorIdAndDate(Long doctorId, LocalDate date);
+
   List<Schedule> findByDoctorIdAndIsAvailableTrueAndStartTimeAfter(Long doctorId, LocalDateTime startTime);
+
+  List<Schedule> findByDoctorIdAndDateAndIsAvailableTrue(Long doctorId, LocalDate date);
 }

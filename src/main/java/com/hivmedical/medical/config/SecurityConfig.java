@@ -34,7 +34,8 @@ public class SecurityConfig {
   }
 
   @Bean
-  public SecurityFilterChain filterChain(HttpSecurity http, JwtAuthenticationFilter jwtAuthenticationFilter) throws Exception {
+  public SecurityFilterChain filterChain(HttpSecurity http, JwtAuthenticationFilter jwtAuthenticationFilter)
+      throws Exception {
     logger.info("Configuring SecurityFilterChain with rules");
     return http
         .cors(cors -> cors.configurationSource(corsConfigurationSource()))
@@ -45,7 +46,6 @@ public class SecurityConfig {
           auth
               .requestMatchers("/api/auth/**", "/swagger-ui/**", "/v3/api-docs/**", "/error").permitAll()
               .requestMatchers(HttpMethod.GET, "/api/doctors", "/api/doctors/**").permitAll()
-              .requestMatchers(HttpMethod.POST, "/api/appointments").permitAll()
               .requestMatchers(HttpMethod.GET, "/api/services", "/api/services/**").permitAll()
               .requestMatchers(HttpMethod.POST, "/api/services").hasRole("ADMIN")
               .requestMatchers(HttpMethod.PUT, "/api/services/**").hasRole("ADMIN")
@@ -59,16 +59,21 @@ public class SecurityConfig {
         .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
         .exceptionHandling(exception -> exception
             .accessDeniedHandler((request, response, accessDeniedException) -> {
-            ;  logger.error("Access denied to {}: {}", request.getRequestURI(), accessDeniedException.getMessage(), accessDeniedException);
+              ;
+              logger.error("Access denied to {}: {}", request.getRequestURI(), accessDeniedException.getMessage(),
+                  accessDeniedException);
               response.setContentType("application/json");
               response.setStatus(HttpServletResponse.SC_FORBIDDEN);
-              response.getWriter().write("{\"error\": \"Access denied\", \"details\": \"" + accessDeniedException.getMessage() + "\"}");
+              response.getWriter()
+                  .write("{\"error\": \"Access denied\", \"details\": \"" + accessDeniedException.getMessage() + "\"}");
             })
             .authenticationEntryPoint((request, response, authException) -> {
-              logger.error("Authentication failed for {}: {}", request.getRequestURI(), authException.getMessage(), authException);
+              logger.error("Authentication failed for {}: {}", request.getRequestURI(), authException.getMessage(),
+                  authException);
               response.setContentType("application/json");
               response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-              response.getWriter().write("{\"error\": \"Authentication failed\", \"details\": \"" + authException.getMessage() + "\"}");
+              response.getWriter()
+                  .write("{\"error\": \"Authentication failed\", \"details\": \"" + authException.getMessage() + "\"}");
             }))
         .build();
   }
@@ -87,7 +92,8 @@ public class SecurityConfig {
   }
 
   @Bean
-  public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
+  public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration)
+      throws Exception {
     logger.info("Initializing AuthenticationManager");
     return authenticationConfiguration.getAuthenticationManager();
   }
