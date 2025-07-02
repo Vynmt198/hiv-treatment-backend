@@ -9,6 +9,7 @@ import com.hivmedical.medical.entitty.Schedule;
 import com.hivmedical.medical.repository.DoctorRepository;
 import com.hivmedical.medical.repository.ScheduleRepository;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
@@ -24,6 +25,7 @@ public class DoctorService {
   private final ObjectMapper objectMapper;
 
   private static final Logger logger = LoggerFactory.getLogger(DoctorService.class);
+
   public List<Doctor> getAllDoctors() {
     return doctorRepository.findAll();
   }
@@ -72,13 +74,23 @@ public class DoctorService {
     ScheduleDTO dto = new ScheduleDTO();
     dto.setId(schedule.getId());
     dto.setDoctorId(schedule.getDoctor().getId());
-    dto.setDate(schedule.getDate());
+    dto.setDate(schedule.getDate() != null ? schedule.getDate().format(DateTimeFormatter.ISO_LOCAL_DATE) : null);
     try {
-      List<String> timeSlots = objectMapper.readValue(schedule.getTimeSlots(), new TypeReference<List<String>>() {});
+      List<String> timeSlots = objectMapper.readValue(schedule.getTimeSlots(), new TypeReference<List<String>>() {
+      });
       dto.setTimeSlots(timeSlots);
     } catch (Exception e) {
       throw new RuntimeException("Error parsing time slots", e);
     }
+    dto.setStartTime(
+        schedule.getStartTime() != null ? schedule.getStartTime().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME) : null);
+    dto.setEndTime(
+        schedule.getEndTime() != null ? schedule.getEndTime().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME) : null);
+    dto.setCreatedAt(
+        schedule.getCreatedAt() != null ? schedule.getCreatedAt().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME) : null);
+    dto.setUpdatedAt(
+        schedule.getUpdatedAt() != null ? schedule.getUpdatedAt().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME) : null);
+    dto.setAvailable(schedule.isAvailable());
     return dto;
   }
 
@@ -99,15 +111,31 @@ public class DoctorService {
           ScheduleDTO dto = new ScheduleDTO();
           dto.setId(schedule.getId());
           dto.setDoctorId(id);
-          dto.setDate(schedule.getDate());
+          dto.setDate(
+              schedule.getDate() != null ? schedule.getDate().format(java.time.format.DateTimeFormatter.ISO_LOCAL_DATE)
+                  : null);
           dto.setTimeSlots(null); // Can be parsed if needed
-          dto.setStartTime(schedule.getStartTime());
-          dto.setEndTime(schedule.getEndTime());
+          dto.setStartTime(schedule.getStartTime() != null
+              ? schedule.getStartTime().format(java.time.format.DateTimeFormatter.ISO_LOCAL_DATE_TIME)
+              : null);
+          dto.setEndTime(schedule.getEndTime() != null
+              ? schedule.getEndTime().format(java.time.format.DateTimeFormatter.ISO_LOCAL_DATE_TIME)
+              : null);
           dto.setAvailable(schedule.isAvailable());
-          dto.setCreatedAt(schedule.getCreatedAt());
-          dto.setUpdatedAt(schedule.getUpdatedAt());
+          dto.setCreatedAt(schedule.getCreatedAt() != null
+              ? schedule.getCreatedAt().format(java.time.format.DateTimeFormatter.ISO_LOCAL_DATE_TIME)
+              : null);
+          dto.setUpdatedAt(schedule.getUpdatedAt() != null
+              ? schedule.getUpdatedAt().format(java.time.format.DateTimeFormatter.ISO_LOCAL_DATE_TIME)
+              : null);
           return dto;
         })
         .collect(Collectors.toList());
+  }
+
+  public List<ScheduleDTO> getAvailableDoctorSchedules(Long doctorId, String date) {
+    LocalDate localDate = LocalDate.parse(date);
+    List<Schedule> schedules = scheduleRepository.findByDoctorIdAndDateAndIsAvailableTrue(doctorId, localDate);
+    return schedules.stream().map(this::convertToScheduleDTO).toList();
   }
 }

@@ -3,6 +3,7 @@ package com.hivmedical.medical.service;
 import com.hivmedical.medical.entitty.Schedule;
 import com.hivmedical.medical.repository.ScheduleRepository;
 import java.time.LocalDateTime;
+import java.time.LocalDate;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -22,5 +23,9 @@ public class ScheduleService {
         .orElseThrow(() -> new IllegalArgumentException("Khung giờ với ID " + scheduleId + " không tồn tại"));
     schedule.setAvailable(false);
     scheduleRepository.save(schedule);
+  }
+
+  public List<Schedule> getAvailableSchedules(Long doctorId, LocalDate date) {
+    return scheduleRepository.findByDoctorIdAndDateAndIsAvailableTrue(doctorId, date);
   }
 }

@@ -2,25 +2,26 @@ package com.hivmedical.medical.dto;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 public class ScheduleDTO {
   private Long id;
   private Long doctorId;
-  private LocalDate date;
+  private String date;
   private List<String> timeSlots;
-  private LocalDateTime startTime;
-  private LocalDateTime endTime;
+  private String startTime;
+  private String endTime;
   private boolean isAvailable;
-  private LocalDateTime createdAt;
-  private LocalDateTime updatedAt;
+  private String createdAt;
+  private String updatedAt;
 
   public ScheduleDTO() {
   }
 
-  public ScheduleDTO(Long id, Long doctorId, LocalDate date, List<String> timeSlots,
-      LocalDateTime startTime, LocalDateTime endTime, boolean isAvailable,
-      LocalDateTime createdAt, LocalDateTime updatedAt) {
+  public ScheduleDTO(Long id, Long doctorId, String date, List<String> timeSlots,
+      String startTime, String endTime, boolean isAvailable,
+      String createdAt, String updatedAt) {
     this.id = id;
     this.doctorId = doctorId;
     this.date = date;
@@ -48,11 +49,11 @@ public class ScheduleDTO {
     this.doctorId = doctorId;
   }
 
-  public LocalDate getDate() {
+  public String getDate() {
     return date;
   }
 
-  public void setDate(LocalDate date) {
+  public void setDate(String date) {
     this.date = date;
   }
 
@@ -64,19 +65,19 @@ public class ScheduleDTO {
     this.timeSlots = timeSlots;
   }
 
-  public LocalDateTime getStartTime() {
+  public String getStartTime() {
     return startTime;
   }
 
-  public void setStartTime(LocalDateTime startTime) {
+  public void setStartTime(String startTime) {
     this.startTime = startTime;
   }
 
-  public LocalDateTime getEndTime() {
+  public String getEndTime() {
     return endTime;
   }
 
-  public void setEndTime(LocalDateTime endTime) {
+  public void setEndTime(String endTime) {
     this.endTime = endTime;
   }
 
@@ -88,19 +89,19 @@ public class ScheduleDTO {
     isAvailable = available;
   }
 
-  public LocalDateTime getCreatedAt() {
+  public String getCreatedAt() {
     return createdAt;
   }
 
-  public void setCreatedAt(LocalDateTime createdAt) {
+  public void setCreatedAt(String createdAt) {
     this.createdAt = createdAt;
   }
 
-  public LocalDateTime getUpdatedAt() {
+  public String getUpdatedAt() {
     return updatedAt;
   }
 
-  public void setUpdatedAt(LocalDateTime updatedAt) {
+  public void setUpdatedAt(String updatedAt) {
     this.updatedAt = updatedAt;
   }
 }
