@@ -31,10 +31,26 @@ public class DoctorService {
   }
 
   public DoctorService(DoctorRepository doctorRepository, ScheduleRepository scheduleRepository,
-      ObjectMapper objectMapper) {
+                       ObjectMapper objectMapper) {
     this.doctorRepository = doctorRepository;
     this.scheduleRepository = scheduleRepository;
     this.objectMapper = objectMapper;
+  }
+  //create
+  public DoctorDTO createDoctor(DoctorDTO dto) {
+    if (doctorRepository.findByEmail(dto.getEmail()).isPresent()) {
+      throw new IllegalArgumentException("Email đã tồn tại: " + dto.getEmail());
+    }
+    Doctor doctor = new Doctor();
+    doctor.setFullName(dto.getFullName());
+    doctor.setSpecialization(dto.getSpecialization());
+    doctor.setQualification(dto.getQualification());
+    doctor.setEmail(dto.getEmail());
+    doctor.setPhoneNumber(dto.getPhoneNumber());
+    doctor.setWorkingSchedule(dto.getWorkingSchedule());
+    doctor.setImageUrl(dto.getImageUrl());
+    Doctor savedDoctor = doctorRepository.save(doctor);
+    return convertToDTO(savedDoctor);
   }
 
   public Page<DoctorDTO> getDoctors(String search, String searchBy, Pageable pageable) {
@@ -53,8 +69,32 @@ public class DoctorService {
 
   public DoctorDTO getDoctorById(Long id) {
     Doctor doctor = doctorRepository.findById(id)
-        .orElseThrow(() -> new RuntimeException("Bác sĩ với ID " + id + " không tồn tại"));
+            .orElseThrow(() -> new RuntimeException("Bác sĩ với ID " + id + " không tồn tại"));
     return convertToDTO(doctor);
+  }
+  //update
+  public DoctorDTO updateDoctor(Long id, DoctorDTO dto) {
+    Doctor doctor = doctorRepository.findById(id)
+            .orElseThrow(() -> new RuntimeException("Bác sĩ với ID " + id + " không tồn tại"));
+    if (doctorRepository.findByEmail(dto.getEmail()).isPresent() && !doctor.getEmail().equals(dto.getEmail())) {
+      throw new IllegalArgumentException("Email đã tồn tại: " + dto.getEmail());
+    }
+    doctor.setFullName(dto.getFullName());
+    doctor.setSpecialization(dto.getSpecialization());
+    doctor.setQualification(dto.getQualification());
+    doctor.setEmail(dto.getEmail());
+    doctor.setPhoneNumber(dto.getPhoneNumber());
+    doctor.setWorkingSchedule(dto.getWorkingSchedule());
+    doctor.setImageUrl(dto.getImageUrl());
+    Doctor updatedDoctor = doctorRepository.save(doctor);
+    return convertToDTO(updatedDoctor);
+  }
+  // Delete
+  public void deleteDoctor(Long id) {
+    if (!doctorRepository.existsById(id)) {
+      throw new RuntimeException("Bác sĩ với ID " + id + " không tồn tại");
+    }
+    doctorRepository.deleteById(id);
   }
 
   private DoctorDTO convertToDTO(Doctor doctor) {
@@ -83,13 +123,13 @@ public class DoctorService {
       throw new RuntimeException("Error parsing time slots", e);
     }
     dto.setStartTime(
-        schedule.getStartTime() != null ? schedule.getStartTime().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME) : null);
+            schedule.getStartTime() != null ? schedule.getStartTime().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME) : null);
     dto.setEndTime(
-        schedule.getEndTime() != null ? schedule.getEndTime().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME) : null);
+            schedule.getEndTime() != null ? schedule.getEndTime().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME) : null);
     dto.setCreatedAt(
-        schedule.getCreatedAt() != null ? schedule.getCreatedAt().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME) : null);
+            schedule.getCreatedAt() != null ? schedule.getCreatedAt().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME) : null);
     dto.setUpdatedAt(
-        schedule.getUpdatedAt() != null ? schedule.getUpdatedAt().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME) : null);
+            schedule.getUpdatedAt() != null ? schedule.getUpdatedAt().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME) : null);
     dto.setAvailable(schedule.isAvailable());
     return dto;
   }
@@ -100,37 +140,37 @@ public class DoctorService {
     List<Schedule> schedules = scheduleRepository.findByDoctorIdAndDate(id, localDate);
     logger.debug("Found {} schedules in database for doctorId: {}", schedules.size(), id);
     return schedules.stream()
-        .filter(schedule -> {
-          if (schedule.getStartTime() == null || schedule.getEndTime() == null) {
-            logger.warn("Schedule {} has null startTime or endTime", schedule.getId());
-            return false;
-          }
-          return schedule.isAvailable();
-        })
-        .map(schedule -> {
-          ScheduleDTO dto = new ScheduleDTO();
-          dto.setId(schedule.getId());
-          dto.setDoctorId(id);
-          dto.setDate(
-              schedule.getDate() != null ? schedule.getDate().format(java.time.format.DateTimeFormatter.ISO_LOCAL_DATE)
-                  : null);
-          dto.setTimeSlots(null); // Can be parsed if needed
-          dto.setStartTime(schedule.getStartTime() != null
-              ? schedule.getStartTime().format(java.time.format.DateTimeFormatter.ISO_LOCAL_DATE_TIME)
-              : null);
-          dto.setEndTime(schedule.getEndTime() != null
-              ? schedule.getEndTime().format(java.time.format.DateTimeFormatter.ISO_LOCAL_DATE_TIME)
-              : null);
-          dto.setAvailable(schedule.isAvailable());
-          dto.setCreatedAt(schedule.getCreatedAt() != null
-              ? schedule.getCreatedAt().format(java.time.format.DateTimeFormatter.ISO_LOCAL_DATE_TIME)
-              : null);
-          dto.setUpdatedAt(schedule.getUpdatedAt() != null
-              ? schedule.getUpdatedAt().format(java.time.format.DateTimeFormatter.ISO_LOCAL_DATE_TIME)
-              : null);
-          return dto;
-        })
-        .collect(Collectors.toList());
+            .filter(schedule -> {
+              if (schedule.getStartTime() == null || schedule.getEndTime() == null) {
+                logger.warn("Schedule {} has null startTime or endTime", schedule.getId());
+                return false;
+              }
+              return schedule.isAvailable();
+            })
+            .map(schedule -> {
+              ScheduleDTO dto = new ScheduleDTO();
+              dto.setId(schedule.getId());
+              dto.setDoctorId(id);
+              dto.setDate(
+                      schedule.getDate() != null ? schedule.getDate().format(java.time.format.DateTimeFormatter.ISO_LOCAL_DATE)
+                              : null);
+              dto.setTimeSlots(null); // Can be parsed if needed
+              dto.setStartTime(schedule.getStartTime() != null
+                      ? schedule.getStartTime().format(java.time.format.DateTimeFormatter.ISO_LOCAL_DATE_TIME)
+                      : null);
+              dto.setEndTime(schedule.getEndTime() != null
+                      ? schedule.getEndTime().format(java.time.format.DateTimeFormatter.ISO_LOCAL_DATE_TIME)
+                      : null);
+              dto.setAvailable(schedule.isAvailable());
+              dto.setCreatedAt(schedule.getCreatedAt() != null
+                      ? schedule.getCreatedAt().format(java.time.format.DateTimeFormatter.ISO_LOCAL_DATE_TIME)
+                      : null);
+              dto.setUpdatedAt(schedule.getUpdatedAt() != null
+                      ? schedule.getUpdatedAt().format(java.time.format.DateTimeFormatter.ISO_LOCAL_DATE_TIME)
+                      : null);
+              return dto;
+            })
+            .collect(Collectors.toList());
   }
 
   public List<ScheduleDTO> getAvailableDoctorSchedules(Long doctorId, String date) {
