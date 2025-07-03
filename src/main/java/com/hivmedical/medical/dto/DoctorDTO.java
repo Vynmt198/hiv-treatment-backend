@@ -1,10 +1,15 @@
 package com.hivmedical.medical.dto;
 
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+
 public class DoctorDTO {
   private Long id;
+  @NotBlank(message = "Full name is required")
   private String fullName;
   private String specialization;
   private String qualification;
+  @NotBlank(message = "Email is required")
   private String email;
   private String phoneNumber;
   private String workingSchedule;
