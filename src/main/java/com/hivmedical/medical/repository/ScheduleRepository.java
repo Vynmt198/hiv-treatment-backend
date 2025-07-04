@@ -12,4 +12,7 @@ public interface ScheduleRepository extends JpaRepository<Schedule, Long> {
   List<Schedule> findByDoctorIdAndIsAvailableTrueAndStartTimeAfter(Long doctorId, LocalDateTime startTime);
 
   List<Schedule> findByDoctorIdAndDateAndIsAvailableTrue(Long doctorId, LocalDate date);
+
+  List<Schedule> findByDateAndStartTimeAndEndTimeAndIsAvailableTrue(LocalDate date, java.time.LocalDateTime startTime,
+      java.time.LocalDateTime endTime);
 }

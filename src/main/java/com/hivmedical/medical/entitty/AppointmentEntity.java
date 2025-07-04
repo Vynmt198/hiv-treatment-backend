@@ -15,7 +15,7 @@ public class AppointmentEntity {
   private Long id;
 
   @ManyToOne
-  @JoinColumn( nullable = false)
+  @JoinColumn(nullable = false)
   private UserEntity user;
 
   @ManyToOne
@@ -25,18 +25,24 @@ public class AppointmentEntity {
   @ManyToOne
   private Doctor doctor;
 
-  @Column( nullable = false, columnDefinition = "NVARCHAR(50) COLLATE Vietnamese_CI_AS")
+  @Column(nullable = false, columnDefinition = "NVARCHAR(50) COLLATE Vietnamese_CI_AS")
   private String appointmentType;
-
 
   private LocalDateTime appointmentDate;
 
-  @Column( nullable = false, columnDefinition = "NVARCHAR(50) COLLATE Vietnamese_CI_AS")
+  @Column(nullable = false, columnDefinition = "NVARCHAR(50) COLLATE Vietnamese_CI_AS")
   private String status;
 
+  @Column(length = 50)
+  private String phone;
+
+  @Column(length = 10)
+  private String gender;
+
+  @Column(columnDefinition = "NVARCHAR(MAX)")
+  private String description;
 
   private LocalDateTime createdAt;
-
 
   private LocalDateTime updatedAt;
 
@@ -72,6 +78,9 @@ public class AppointmentEntity {
     this.status = status;
     this.createdAt = createdAt;
     this.updatedAt = updatedAt;
+    this.phone = phone;
+    this.gender = gender;
+    this.description = description;
   }
 
   public Long getId() {
@@ -141,7 +150,33 @@ public class AppointmentEntity {
   public Doctor getDoctor() {
     return doctor;
   }
+
   public void setDoctor(Doctor doctor) {
     this.doctor = doctor;
   }
+
+  public String getPhone() {
+    return phone;
+  }
+
+  public void setPhone(String phone) {
+    this.phone = phone;
+  }
+
+  public String getGender() {
+    return gender;
+  }
+
+  public void setGender(String gender) {
+    this.gender = gender;
+  }
+
+  public String getDescription() {
+    return description;
+  }
+
+  public void setDescription(String description) {
+    this.description = description;
+  }
+
 }
