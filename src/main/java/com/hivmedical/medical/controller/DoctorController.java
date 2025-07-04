@@ -74,4 +74,21 @@ public class DoctorController {
       return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
     }
   }
+
+  @GetMapping("/available")
+  public ResponseEntity<List<DoctorDTO>> getAvailableDoctorsBySlot(
+      @RequestParam String date,
+      @RequestParam String startTime,
+      @RequestParam String endTime,
+      @RequestParam(required = false) String specialization) {
+    try {
+      List<DoctorDTO> availableDoctors = doctorService.getAvailableDoctorsBySlot(date, startTime, endTime,
+          specialization);
+      return ResponseEntity.ok(availableDoctors);
+    } catch (Exception e) {
+      logger.error("Error fetching available doctors for date: {}, startTime: {}, endTime: {}, specialization: {}",
+          date, startTime, endTime, specialization, e);
+      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+    }
+  }
 }

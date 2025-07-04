@@ -25,7 +25,7 @@ public class UserEntity {
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
-//  @Column(name = "userid")
+  // @Column(name = "userid")
   private Long userId;
 
   @Nationalized
@@ -45,7 +45,7 @@ public class UserEntity {
   @Column(nullable = false)
   private LocalDateTime registrationDate;
 
-  //  @Column(name = "lastLoginDate")
+  // @Column(name = "lastLoginDate")
   private LocalDateTime lastLoginDate;
 
   @Column(length = 255)
@@ -58,6 +58,11 @@ public class UserEntity {
   @Column(nullable = false)
   private boolean enabled = false;
 
+  @Column(length = 50)
+  private String phone;
+
+  @Column(length = 10)
+  private String gender;
 
   @PrePersist
   protected void onCreate() {
@@ -78,7 +83,7 @@ public class UserEntity {
   public UserEntity(Long userId, String username, String passwordHash, String email,
       String fullName,
       LocalDateTime registrationDate, LocalDateTime lastLoginDate, String profilePictureUrl,
-      Role role, boolean enabled) {
+      Role role, boolean enabled, String phone, String gender) {
     this.userId = userId;
     this.username = username;
     this.passwordHash = passwordHash;
@@ -89,6 +94,8 @@ public class UserEntity {
     this.profilePictureUrl = profilePictureUrl;
     this.role = role;
     this.enabled = enabled;
+    this.phone = phone;
+    this.gender = gender;
   }
 
   public Long getUserId() {
@@ -169,5 +176,21 @@ public class UserEntity {
 
   public void setEnabled(boolean enabled) {
     this.enabled = enabled;
+  }
+
+  public String getPhone() {
+    return phone;
+  }
+
+  public void setPhone(String phone) {
+    this.phone = phone;
+  }
+
+  public String getGender() {
+    return gender;
+  }
+
+  public void setGender(String gender) {
+    this.gender = gender;
   }
 }

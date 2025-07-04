@@ -33,53 +33,56 @@ public class SecurityConfig {
         return new JwtAuthenticationFilter(jwtSecret);
     }
 
-    @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http, JwtAuthenticationFilter jwtAuthenticationFilter)
-            throws Exception {
-        logger.info("Configuring SecurityFilterChain with rules");
-        return http
-                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-                .csrf(csrf -> csrf.disable())
-                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .authorizeHttpRequests(auth -> {
-                    logger.info("Setting up authorization rules");
-                    auth
-                            .requestMatchers("/api/auth/**", "/swagger-ui/**", "/v3/api-docs/**", "/error").permitAll()
-                            .requestMatchers(HttpMethod.GET, "/api/doctors", "/api/doctors/**").permitAll()
-                            .requestMatchers(HttpMethod.GET, "/api/services", "/api/services/**").permitAll()
-                            .requestMatchers(HttpMethod.POST, "/api/services").hasRole("ADMIN")
-                            .requestMatchers(HttpMethod.PUT, "/api/services/**").hasRole("ADMIN")
-                            .requestMatchers(HttpMethod.DELETE, "/api/services/**").hasRole("ADMIN")
+  @Bean
+  public SecurityFilterChain filterChain(HttpSecurity http, JwtAuthenticationFilter jwtAuthenticationFilter)
+      throws Exception {
+    logger.info("Configuring SecurityFilterChain with rules");
+    return http
+        .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+        .csrf(csrf -> csrf.disable())
+        .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+        .authorizeHttpRequests(auth -> {
+          logger.info("Setting up authorization rules");
+          auth
+              .requestMatchers("/api/auth/**", "/swagger-ui/**", "/v3/api-docs/**", "/error").permitAll()
+              .requestMatchers(HttpMethod.GET, "/api/doctors", "/api/doctors/**").permitAll()
+              .requestMatchers(HttpMethod.GET, "/api/services", "/api/services/**").permitAll()
+              .requestMatchers(HttpMethod.POST, "/api/services").hasRole("ADMIN")
+              .requestMatchers(HttpMethod.PUT, "/api/services/**").hasRole("ADMIN")
+              .requestMatchers(HttpMethod.DELETE, "/api/services/**").hasRole("ADMIN")
                             .requestMatchers(HttpMethod.POST, "/api/doctors").hasRole("ADMIN")
                             .requestMatchers(HttpMethod.PUT, "/api/doctors/**").hasRole("ADMIN")
-                            .requestMatchers(HttpMethod.DELETE, "/api/doctors/**").hasRole("ADMIN")
-                            .requestMatchers("/api/appointments/me", "/api/appointments/patient/**").hasRole("PATIENT")
-                            .requestMatchers("/api/admin/**").hasRole("ADMIN")
-                            .requestMatchers("/api/doctor/**").hasRole("DOCTOR")
-                            .requestMatchers("/api/patient/**").hasRole("PATIENT")
-                            .anyRequest().authenticated();
-                })
-                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
-                .exceptionHandling(exception -> exception
-                        .accessDeniedHandler((request, response, accessDeniedException) -> {
-                            ;
-                            logger.error("Access denied to {}: {}", request.getRequestURI(), accessDeniedException.getMessage(),
-                                    accessDeniedException);
-                            response.setContentType("application/json");
-                            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
-                            response.getWriter()
-                                    .write("{\"error\": \"Access denied\", \"details\": \"" + accessDeniedException.getMessage() + "\"}");
-                        })
-                        .authenticationEntryPoint((request, response, authException) -> {
-                            logger.error("Authentication failed for {}: {}", request.getRequestURI(), authException.getMessage(),
-                                    authException);
-                            response.setContentType("application/json");
-                            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                            response.getWriter()
-                                    .write("{\"error\": \"Authentication failed\", \"details\": \"" + authException.getMessage() + "\"}");
-                        }))
-                .build();
-    }
+                            .requestMatchers(HttpMethod.DELETE, "/api/doctors/**").hasRole("ADMIN")            
+              .requestMatchers("/api/appointments/me", "/api/appointments/patient/**").hasRole("PATIENT")
+              .requestMatchers("/api/admin/**").hasRole("ADMIN")
+              .requestMatchers("/api/doctor/**").hasRole("DOCTOR")
+              .requestMatchers("/api/patient/**").hasRole("PATIENT")
+              .requestMatchers("/api/appointments/anonymous-online").permitAll()
+              .requestMatchers("/api/appointments/online").hasAnyRole("PATIENT", "ADMIN")
+              .anyRequest().authenticated();
+        })
+        .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+        .exceptionHandling(exception -> exception
+            .accessDeniedHandler((request, response, accessDeniedException) -> {
+              ;
+              logger.error("Access denied to {}: {}", request.getRequestURI(), accessDeniedException.getMessage(),
+                  accessDeniedException);
+              response.setContentType("application/json");
+              response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+              response.getWriter()
+                  .write("{\"error\": \"Access denied\", \"details\": \"" + accessDeniedException.getMessage() + "\"}");
+            })
+            .authenticationEntryPoint((request, response, authException) -> {
+              logger.error("Authentication failed for {}: {}", request.getRequestURI(), authException.getMessage(),
+                  authException);
+              response.setContentType("application/json");
+              response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+              response.getWriter()
+                  .write("{\"error\": \"Authentication failed\", \"details\": \"" + authException.getMessage() + "\"}");
+            }))
+        .build();
+  }
+
 
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
