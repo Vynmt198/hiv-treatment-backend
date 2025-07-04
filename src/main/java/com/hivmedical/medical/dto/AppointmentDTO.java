@@ -26,6 +26,14 @@ public class AppointmentDTO {
   private String serviceName; // Tên dịch vụ
   private String doctorName;
 
+  private String specialization;
+  private String doctorEmail;
+  private String doctorPhone;
+
+  private String phone;
+  private String gender;
+  private String description;
+
   public AppointmentDTO() {
   }
 
@@ -113,5 +121,53 @@ public class AppointmentDTO {
 
   public void setDoctorName(String doctorName) {
     this.doctorName = doctorName;
+  }
+
+  public String getSpecialization() {
+    return specialization;
+  }
+
+  public void setSpecialization(String specialization) {
+    this.specialization = specialization;
+  }
+
+  public String getDoctorEmail() {
+    return doctorEmail;
+  }
+
+  public void setDoctorEmail(String doctorEmail) {
+    this.doctorEmail = doctorEmail;
+  }
+
+  public String getDoctorPhone() {
+    return doctorPhone;
+  }
+
+  public void setDoctorPhone(String doctorPhone) {
+    this.doctorPhone = doctorPhone;
+  }
+
+  public String getPhone() {
+    return phone;
+  }
+
+  public void setPhone(String phone) {
+    this.phone = phone;
+  }
+
+  public String getGender() {
+    return gender;
+  }
+
+  public void setGender(String gender) {
+    this.gender = gender;
+  }
+
+  public String getDescription() {
+    return description;
+  }
+
+  public void setDescription(String description) {
+    this.description = description;
   }
 }

@@ -10,4 +10,5 @@ public class MedicalApplication {
 		SpringApplication.run(MedicalApplication.class, args);
 		System.out.println("Medical Application Started");
 	}
+
 }

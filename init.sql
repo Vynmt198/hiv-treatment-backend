@@ -51,3 +51,42 @@ DELETE FROM verification_tokens;
 INSERT INTO verification_tokens (token, email, user_info, expiry_date, type) VALUES
                                                                                  ('token123456', 'nguyenvana@gmail.com', N'{"username": "nguyenvana", "fullName": "Nguyễn Văn A"}', '2025-07-01 10:00:00', N'EMAIL_VERIFICATION'),
                                                                                  ('token789012', 'tranb@gmail.com', N'{"username": "tranb", "fullName": "Trần Thị B"}', '2025-07-01 10:30:00', N'EMAIL_VERIFICATION');
+
+-- Lặp lại cho từng bác sĩ và từng ngày
+DECLARE @doctor_id INT, @date DATE, @start_time TIME, @end_time TIME, @i INT, @j INT;
+
+SET @i = 0;
+WHILE @i < 5 -- 5 ngày tiếp theo
+BEGIN
+    SET @date = DATEADD(DAY, @i, CAST(GETDATE() AS DATE));
+    SET @doctor_id = 1;
+    SET @j = 0;
+    WHILE @j < 4 -- 4 khung giờ mỗi ngày
+    BEGIN
+        SET @start_time = DATEADD(MINUTE, @j * 30, '08:00');
+        SET @end_time = DATEADD(MINUTE, (@j + 1) * 30, '08:00');
+        INSERT INTO schedule (doctor_id, date, start_time, end_time, is_available, created_at, updated_at, time_slots)
+        VALUES (@doctor_id, @date, 
+                DATEADD(MINUTE, @j * 30, CAST(@date AS DATETIME)), 
+                DATEADD(MINUTE, (@j + 1) * 30, CAST(@date AS DATETIME)), 
+                1, GETDATE(), GETDATE(), 
+                CONCAT('["', FORMAT(@start_time, 'HH:mm'), '-', FORMAT(@end_time, 'HH:mm'), '"]'));
+        SET @j = @j + 1;
+    END
+    -- Lặp lại cho bác sĩ thứ 2
+    SET @doctor_id = 2;
+    SET @j = 0;
+    WHILE @j < 4
+    BEGIN
+        SET @start_time = DATEADD(MINUTE, @j * 30, '08:00');
+        SET @end_time = DATEADD(MINUTE, (@j + 1) * 30, '08:00');
+        INSERT INTO schedule (doctor_id, date, start_time, end_time, is_available, created_at, updated_at, time_slots)
+        VALUES (@doctor_id, @date, 
+                DATEADD(MINUTE, @j * 30, CAST(@date AS DATETIME)), 
+                DATEADD(MINUTE, (@j + 1) * 30, CAST(@date AS DATETIME)), 
+                1, GETDATE(), GETDATE(), 
+                CONCAT('["', FORMAT(@start_time, 'HH:mm'), '-', FORMAT(@end_time, 'HH:mm'), '"]'));
+        SET @j = @j + 1;
+    END
+    SET @i = @i + 1;
+END
