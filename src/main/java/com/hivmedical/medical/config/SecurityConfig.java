@@ -21,17 +21,17 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 @Configuration
 public class SecurityConfig {
-  private static final Logger logger = LoggerFactory.getLogger(SecurityConfig.class);
+    private static final Logger logger = LoggerFactory.getLogger(SecurityConfig.class);
 
-  @Bean
-  public BCryptPasswordEncoder passwordEncoder() {
-    return new BCryptPasswordEncoder();
-  }
+    @Bean
+    public BCryptPasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
+    }
 
-  @Bean
-  public JwtAuthenticationFilter jwtAuthenticationFilter(@Value("${jwt.secret}") String jwtSecret) {
-    return new JwtAuthenticationFilter(jwtSecret);
-  }
+    @Bean
+    public JwtAuthenticationFilter jwtAuthenticationFilter(@Value("${jwt.secret}") String jwtSecret) {
+        return new JwtAuthenticationFilter(jwtSecret);
+    }
 
   @Bean
   public SecurityFilterChain filterChain(HttpSecurity http, JwtAuthenticationFilter jwtAuthenticationFilter)
@@ -50,6 +50,9 @@ public class SecurityConfig {
               .requestMatchers(HttpMethod.POST, "/api/services").hasRole("ADMIN")
               .requestMatchers(HttpMethod.PUT, "/api/services/**").hasRole("ADMIN")
               .requestMatchers(HttpMethod.DELETE, "/api/services/**").hasRole("ADMIN")
+                            .requestMatchers(HttpMethod.POST, "/api/doctors").hasRole("ADMIN")
+                            .requestMatchers(HttpMethod.PUT, "/api/doctors/**").hasRole("ADMIN")
+                            .requestMatchers(HttpMethod.DELETE, "/api/doctors/**").hasRole("ADMIN")            
               .requestMatchers("/api/appointments/me", "/api/appointments/patient/**").hasRole("PATIENT")
               .requestMatchers("/api/admin/**").hasRole("ADMIN")
               .requestMatchers("/api/doctor/**").hasRole("DOCTOR")
@@ -80,23 +83,24 @@ public class SecurityConfig {
         .build();
   }
 
-  @Bean
-  public CorsConfigurationSource corsConfigurationSource() {
-    CorsConfiguration configuration = new CorsConfiguration();
-    configuration.addAllowedOrigin("http://localhost:5173");
-    configuration.addAllowedMethod("*");
-    configuration.addAllowedHeader("*");
-    configuration.setAllowCredentials(true);
 
-    UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-    source.registerCorsConfiguration("/**", configuration);
-    return source;
-  }
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+        configuration.addAllowedOrigin("http://localhost:5173");
+        configuration.addAllowedMethod("*");
+        configuration.addAllowedHeader("*");
+        configuration.setAllowCredentials(true);
 
-  @Bean
-  public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration)
-      throws Exception {
-    logger.info("Initializing AuthenticationManager");
-    return authenticationConfiguration.getAuthenticationManager();
-  }
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+        return source;
+    }
+
+    @Bean
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration)
+            throws Exception {
+        logger.info("Initializing AuthenticationManager");
+        return authenticationConfiguration.getAuthenticationManager();
+    }
 }

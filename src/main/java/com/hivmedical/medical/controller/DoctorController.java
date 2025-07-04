@@ -13,11 +13,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/doctors")
@@ -30,16 +26,32 @@ public class DoctorController {
     this.doctorService = doctorService;
   }
 
+
+  @PostMapping("/create")
+  public ResponseEntity<DoctorDTO> createDoctor(@RequestBody DoctorDTO dto) {
+    return ResponseEntity.ok(doctorService.createDoctor(dto));
+  }
+
+  // Read (danh sách với tìm kiếm và phân trang)
   @GetMapping
   public ResponseEntity<Page<DoctorDTO>> getDoctors(
-      @RequestParam(defaultValue = "0") int page,
-      @RequestParam(defaultValue = "10") int size,
-      @RequestParam(required = false) String search,
-      @RequestParam(defaultValue = "name") String searchBy) {
-    Pageable pageable = PageRequest.of(page, size);
-    Page<DoctorDTO> doctors = doctorService.getDoctors(search, searchBy, pageable);
-    return ResponseEntity.ok(doctors);
+          @RequestParam(required = false) String search,
+          @RequestParam(required = false) String searchBy,
+          Pageable pageable) {
+    return ResponseEntity.ok(doctorService.getDoctors(search, searchBy, pageable));
   }
+  // Update
+  @PutMapping("/{id}")
+  public ResponseEntity<DoctorDTO> updateDoctor(@PathVariable Long id, @RequestBody DoctorDTO dto) {
+    return ResponseEntity.ok(doctorService.updateDoctor(id, dto));
+  }
+  // Delete
+  @DeleteMapping("/{id}")
+  public ResponseEntity<Void> deleteDoctor(@PathVariable Long id) {
+    doctorService.deleteDoctor(id);
+    return ResponseEntity.noContent().build();
+  }
+
 
   @GetMapping("/{id}")
   public ResponseEntity<DoctorDTO> getDoctorById(@PathVariable Long id) {
@@ -49,8 +61,8 @@ public class DoctorController {
 
   @GetMapping("/{id}/schedules")
   public ResponseEntity<List<ScheduleDTO>> getDoctorAvailableSchedules(
-      @PathVariable Long id,
-      @RequestParam(required = false) String date) {
+          @PathVariable Long id,
+          @RequestParam(required = false) String date) {
     logger.debug("Fetching available schedules for doctorId: {}, date: {}", id, date);
     try {
       LocalDate localDate = (date != null) ? LocalDate.parse(date) : LocalDate.now();
