@@ -1768,33 +1768,4 @@ Consider renaming one of the beans or enabling overriding by setting spring.main
 	Isolation level: undefined/unknown
 	Minimum pool size: undefined/unknown
 	Maximum pool size: undefined/unknown
-2025-07-03 19:30:17 [main] INFO  o.h.e.t.j.p.i.JtaPlatformInitiator - HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
-2025-07-03 19:30:18 [main] INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean - Initialized JPA EntityManagerFactory for persistence unit 'default'
-2025-07-03 19:30:18 [main] INFO  o.s.d.j.r.query.QueryEnhancerFactory - Hibernate is in classpath; If applicable, HQL parser will be used.
-2025-07-03 19:30:19 [main] WARN  o.s.b.a.o.j.JpaBaseConfiguration$JpaWebConfiguration - spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
-2025-07-03 19:30:19 [main] DEBUG o.s.s.c.a.a.c.AuthenticationConfiguration$DefaultPasswordEncoderAuthenticationManagerBuilder - No authenticationProviders and no parentAuthenticationManager defined. Returning null.
-2025-07-03 19:30:19 [main] INFO  c.h.medical.config.SecurityConfig - Configuring SecurityFilterChain with rules
-2025-07-03 19:30:19 [main] INFO  c.h.medical.config.SecurityConfig - Setting up authorization rules
-2025-07-03 19:30:19 [main] DEBUG o.s.s.web.DefaultSecurityFilterChain - Will secure any request with filters: DisableEncodeUrlFilter, WebAsyncManagerIntegrationFilter, SecurityContextHolderFilter, HeaderWriterFilter, CorsFilter, LogoutFilter, JwtAuthenticationFilter, RequestCacheAwareFilter, SecurityContextHolderAwareRequestFilter, AnonymousAuthenticationFilter, SessionManagementFilter, ExceptionTranslationFilter, AuthorizationFilter
-2025-07-03 19:30:19 [main] INFO  c.h.medical.config.SecurityConfig - Initializing AuthenticationManager
-2025-07-03 19:30:19 [main] INFO  o.s.b.w.e.tomcat.TomcatWebServer - Tomcat started on port 8080 (http) with context path '/'
-2025-07-03 19:30:19 [main] INFO  c.h.medical.MedicalApplication - Started MedicalApplication in 4.643 seconds (process running for 4.924)
-2025-07-03 19:30:23 [http-nio-8080-exec-1] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring DispatcherServlet 'dispatcherServlet'
-2025-07-03 19:30:23 [http-nio-8080-exec-1] INFO  o.s.web.servlet.DispatcherServlet - Initializing Servlet 'dispatcherServlet'
-2025-07-03 19:30:23 [http-nio-8080-exec-1] INFO  o.s.web.servlet.DispatcherServlet - Completed initialization in 1 ms
-2025-07-03 19:30:23 [http-nio-8080-exec-1] DEBUG o.s.security.web.FilterChainProxy - Securing POST /api/appointments/anonymous-online
-2025-07-03 19:30:23 [http-nio-8080-exec-1] INFO  c.h.m.s.JwtAuthenticationFilter - Processing request to /api/appointments/anonymous-online with Authorization header: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImFkbWluIiwicm9sZSI6IkFETUlOIiwiZnVsbE5hbWUiOiJhZG1pbiIsImV4cCI6MTc1MTYyOTMwMH0.CgLtoy4v36hRJrO3WUEN8rRHRRVw2nrzxwW23vqYRxc
-2025-07-03 19:30:23 [http-nio-8080-exec-1] DEBUG c.h.m.s.JwtAuthenticationFilter - Verifying JWT token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImFkbWluIiwicm9sZSI6IkFETUlOIiwiZnVsbE5hbWUiOiJhZG1pbiIsImV4cCI6MTc1MTYyOTMwMH0.CgLtoy4v36hRJrO3WUEN8rRHRRVw2nrzxwW23vqYRxc
-2025-07-03 19:30:23 [http-nio-8080-exec-1] DEBUG c.h.m.s.JwtAuthenticationFilter - Using secret key: 1234567890
-2025-07-03 19:30:23 [http-nio-8080-exec-1] DEBUG c.h.m.s.JwtAuthenticationFilter - JWT verifier initialized
-2025-07-03 19:30:23 [http-nio-8080-exec-1] DEBUG c.h.m.s.JwtAuthenticationFilter - Token verification completed
-2025-07-03 19:30:23 [http-nio-8080-exec-1] DEBUG c.h.m.s.JwtAuthenticationFilter - Extracted claims - username: admin, role: ADMIN
-2025-07-03 19:30:23 [http-nio-8080-exec-1] INFO  c.h.m.s.JwtAuthenticationFilter - Token verified for request to /api/appointments/anonymous-online - username: admin, role: ADMIN
-2025-07-03 19:30:23 [http-nio-8080-exec-1] DEBUG c.h.m.s.JwtAuthenticationFilter - Authentication set for user: admin with role: ADMIN for request to /api/appointments/anonymous-online
-2025-07-03 19:30:23 [http-nio-8080-exec-1] DEBUG c.h.m.s.JwtAuthenticationFilter - Proceeding to next filter for request to /api/appointments/anonymous-online
-2025-07-03 19:30:23 [http-nio-8080-exec-1] DEBUG o.s.security.web.FilterChainProxy - Secured POST /api/appointments/anonymous-online
-2025-07-03 19:31:43 [SpringApplicationShutdownHook] INFO  o.s.b.w.e.tomcat.GracefulShutdown - Commencing graceful shutdown. Waiting for active requests to complete
-2025-07-03 19:31:43 [tomcat-shutdown] INFO  o.s.b.w.e.tomcat.GracefulShutdown - Graceful shutdown complete
-2025-07-03 19:31:43 [SpringApplicationShutdownHook] INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean - Closing JPA EntityManagerFactory for persistence unit 'default'
-2025-07-03 19:31:43 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Shutdown initiated...
-2025-07-03 19:31:43 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Shutdown completed.
+
