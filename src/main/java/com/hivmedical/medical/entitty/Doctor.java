@@ -1,6 +1,5 @@
 package com.hivmedical.medical.entitty;
 
-
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -20,7 +19,7 @@ public class Doctor {
   private Long id;
 
   @Nationalized
-  @Column(columnDefinition = "NVARCHAR(MAX)",nullable = false)
+  @Column(columnDefinition = "NVARCHAR(MAX)", nullable = false)
   private String fullName;
 
   @Nationalized
@@ -36,15 +35,16 @@ public class Doctor {
   private String phoneNumber;
 
   @Nationalized
+  @Column(columnDefinition = "NVARCHAR(255)")
   private String workingSchedule;
 
   @Column
   private String imageUrl;
 
-  @Column( nullable = false)
+  @Column(nullable = false)
   private LocalDateTime createdAt;
 
-  @Column( nullable = false)
+  @Column(nullable = false)
   private LocalDateTime updatedAt;
 
   @PrePersist
@@ -58,7 +58,8 @@ public class Doctor {
     updatedAt = LocalDateTime.now();
   }
 
-  public Doctor() {}
+  public Doctor() {
+  }
 
   public Doctor(Long id, String fullName, String specialization, String qualification, String email,
       String phoneNumber, String workingSchedule, String imageUrl, LocalDateTime createdAt,

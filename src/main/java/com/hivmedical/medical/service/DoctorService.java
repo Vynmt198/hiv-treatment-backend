@@ -9,6 +9,8 @@ import com.hivmedical.medical.entitty.Schedule;
 import com.hivmedical.medical.repository.DoctorRepository;
 import com.hivmedical.medical.repository.ScheduleRepository;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -177,5 +179,47 @@ public class DoctorService {
     LocalDate localDate = LocalDate.parse(date);
     List<Schedule> schedules = scheduleRepository.findByDoctorIdAndDateAndIsAvailableTrue(doctorId, localDate);
     return schedules.stream().map(this::convertToScheduleDTO).toList();
+  }
+
+  public void syncWorkScheduleToSchedule(Long doctorId, int daysInFuture) {
+    Doctor doctor = doctorRepository.findById(doctorId).orElseThrow();
+    // Giả sử workschedule là: "Thứ 2-6: 08:00-17:00"
+    // Parse ra các ngày, giờ bắt đầu/kết thúc
+    // (Bạn có thể dùng regex hoặc lưu workschedule dạng JSON để dễ parse hơn)
+    for (int i = 0; i < daysInFuture; i++) {
+      LocalDate date = LocalDate.now().plusDays(i);
+      LocalTime start = LocalTime.of(8, 0);
+      LocalTime end = LocalTime.of(17, 0);
+      while (start.isBefore(end)) {
+        LocalTime slotEnd = start.plusMinutes(30);
+        Schedule schedule = new Schedule();
+        schedule.setDoctor(doctor);
+        schedule.setDate(date);
+        schedule.setStartTime(LocalDateTime.of(date, start));
+        schedule.setEndTime(LocalDateTime.of(date, slotEnd));
+        schedule.setAvailable(true);
+        schedule.setCreatedAt(LocalDateTime.now());
+        schedule.setUpdatedAt(LocalDateTime.now());
+        // ... set các trường khác nếu cần
+        scheduleRepository.save(schedule);
+        start = slotEnd;
+      }
+    }
+  }
+
+  public List<DoctorDTO> getAvailableDoctorsBySlot(String date, String startTime, String endTime,
+      String specialization) {
+    LocalDate localDate = LocalDate.parse(date);
+    java.time.LocalDateTime start = java.time.LocalDateTime.parse(date + "T" + startTime);
+    java.time.LocalDateTime end = java.time.LocalDateTime.parse(date + "T" + endTime);
+    List<Schedule> availableSchedules = scheduleRepository.findByDateAndStartTimeAndEndTimeAndIsAvailableTrue(localDate,
+        start, end);
+    return availableSchedules.stream()
+        .map(Schedule::getDoctor)
+        .filter(doctor -> specialization == null || specialization.isEmpty()
+            || (doctor.getSpecialization() != null && doctor.getSpecialization().equalsIgnoreCase(specialization)))
+        .distinct()
+        .map(this::convertToDTO)
+        .collect(Collectors.toList());
   }
 }

@@ -1,6 +1,8 @@
 package com.hivmedical.medical.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Info;
 import io.swagger.v3.oas.models.security.SecurityRequirement;
@@ -17,7 +19,7 @@ public class OpenApiConfig {
             .title("HIV Treatment API")
             .version("1.0")
             .description("API for HIV Treatment Management System"))
-  .addSecurityItem(new SecurityRequirement().addList("bearerAuth"))
+        .addSecurityItem(new SecurityRequirement().addList("bearerAuth"))
         .components(new io.swagger.v3.oas.models.Components()
             .addSecuritySchemes("bearerAuth", new SecurityScheme()
                 .name("bearerAuth")
@@ -29,9 +31,12 @@ public class OpenApiConfig {
 
   @Configuration
   public class AppConfig {
+
     @Bean
     public ObjectMapper objectMapper() {
-      return new ObjectMapper();
+      ObjectMapper mapper = new ObjectMapper();
+      mapper.registerModule(new JavaTimeModule());
+      return mapper;
     }
   }
 }
