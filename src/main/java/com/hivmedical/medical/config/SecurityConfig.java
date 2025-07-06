@@ -45,14 +45,14 @@ public class SecurityConfig {
           logger.info("Setting up authorization rules");
           auth
               .requestMatchers("/api/auth/**", "/swagger-ui/**", "/v3/api-docs/**", "/error").permitAll()
-              .requestMatchers(HttpMethod.GET, "/api/doctors", "/api/doctors/**").permitAll()
+              .requestMatchers(HttpMethod.GET, "/api/doctors", "/api/doctors/**","/api/blogs/**").permitAll()
               .requestMatchers(HttpMethod.GET, "/api/services", "/api/services/**").permitAll()
               .requestMatchers(HttpMethod.POST, "/api/services").hasRole("ADMIN")
               .requestMatchers(HttpMethod.PUT, "/api/services/**").hasRole("ADMIN")
               .requestMatchers(HttpMethod.DELETE, "/api/services/**").hasRole("ADMIN")
-                            .requestMatchers(HttpMethod.POST, "/api/doctors").hasRole("ADMIN")
-                            .requestMatchers(HttpMethod.PUT, "/api/doctors/**").hasRole("ADMIN")
-                            .requestMatchers(HttpMethod.DELETE, "/api/doctors/**").hasRole("ADMIN")            
+                            .requestMatchers(HttpMethod.POST, "/api/doctors","/api/blogs").hasRole("ADMIN")
+                            .requestMatchers(HttpMethod.PUT, "/api/doctors/**","/api/blogs/**").hasRole("ADMIN")
+                            .requestMatchers(HttpMethod.DELETE, "/api/doctors/**","/api/blogs/**").hasRole("ADMIN")
               .requestMatchers("/api/appointments/me", "/api/appointments/patient/**").hasRole("PATIENT")
               .requestMatchers("/api/admin/**").hasRole("ADMIN")
               .requestMatchers("/api/doctor/**").hasRole("DOCTOR")

@@ -13,6 +13,7 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -81,13 +82,18 @@ public class DoctorService {
     if (doctorRepository.findByEmail(dto.getEmail()).isPresent() && !doctor.getEmail().equals(dto.getEmail())) {
       throw new IllegalArgumentException("Email đã tồn tại: " + dto.getEmail());
     }
-    doctor.setFullName(dto.getFullName());
-    doctor.setSpecialization(dto.getSpecialization());
-    doctor.setQualification(dto.getQualification());
-    doctor.setEmail(dto.getEmail());
-    doctor.setPhoneNumber(dto.getPhoneNumber());
-    doctor.setWorkingSchedule(dto.getWorkingSchedule());
-    doctor.setImageUrl(dto.getImageUrl());
+    Optional.ofNullable(dto.getFullName()).ifPresent(doctor::setFullName);
+    Optional.ofNullable(dto.getSpecialization()).ifPresent(doctor::setSpecialization);
+    Optional.ofNullable(dto.getQualification()).ifPresent(doctor::setQualification);
+    Optional.ofNullable(dto.getEmail()).ifPresent(doctor::setEmail);
+    Optional.ofNullable(dto.getPhoneNumber()).ifPresent(doctor::setPhoneNumber);
+    Optional.ofNullable(dto.getWorkingSchedule()).ifPresent(doctor::setWorkingSchedule);
+
+    // Xử lý imageUrl: giữ nguyên nếu không gửi hoặc gửi null, cập nhật nếu có giá trị mới
+    if (dto.getImageUrl() != null) { // Kiểm tra giá trị mới
+      doctor.setImageUrl(dto.getImageUrl());
+    } // Nếu null hoặc không gửi, giữ nguyên giá trị cũ
+
     Doctor updatedDoctor = doctorRepository.save(doctor);
     return convertToDTO(updatedDoctor);
   }
