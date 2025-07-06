@@ -1,7 +1,6 @@
 package com.hivmedical.medical.service;
 
-import com.hivmedical.medical.entitty.UserEntity;
-import com.hivmedical.medical.entitty.VerificationToken;
+import com.hivmedical.medical.dto.PatientProfileDTO;
 import com.hivmedical.medical.entitty.UserEntity;
 import com.hivmedical.medical.entitty.VerificationToken;
 import com.hivmedical.medical.repository.UserRepositoty;
@@ -127,5 +126,36 @@ public class UserService {
       otp.append(characters.charAt(random.nextInt(characters.length())));
     }
     return otp.toString();
+  }
+
+  public PatientProfileDTO getPatientProfile(String email) {
+    UserEntity user = userRepository.findByEmail(email)
+        .orElseThrow(() -> new RuntimeException("User not found"));
+    return mapToProfileDTO(user);
+  }
+
+  public PatientProfileDTO updatePatientProfile(String email, PatientProfileDTO dto) {
+    UserEntity user = userRepository.findByEmail(email)
+        .orElseThrow(() -> new RuntimeException("User not found"));
+    user.setFullName(dto.getFullName());
+    user.setGender(dto.getGender());
+    user.setPhone(dto.getPhone());
+    user.setAddress(dto.getAddress());
+    user.setBirthDate(dto.getBirthDate());
+    user.setHivStatus(dto.getHivStatus());
+    user.setTreatmentStartDate(dto.getTreatmentStartDate());
+    userRepository.save(user);
+    return mapToProfileDTO(user);
+  }
+
+  private PatientProfileDTO mapToProfileDTO(UserEntity user) {
+    return new PatientProfileDTO(
+        user.getFullName(),
+        user.getGender(),
+        user.getPhone(),
+        user.getAddress(),
+        user.getBirthDate(),
+        user.getHivStatus(),
+        user.getTreatmentStartDate());
   }
 }

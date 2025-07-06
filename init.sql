@@ -90,3 +90,61 @@ BEGIN
     END
     SET @i = @i + 1;
 END
+
+///////////////////////////////////////////////////
+-- updated sql appoinment online
+ALTER TABLE appointments ADD phone NVARCHAR(50);
+ALTER TABLE appointments ADD gender NVARCHAR(10);
+ALTER TABLE appointments ADD description NVARCHAR(MAX);
+
+ALTER TABLE users ADD phone NVARCHAR(50);
+ALTER TABLE users ADD gender NVARCHAR(10);
+
+INSERT INTO services(name, type, description)
+VALUES (N'Tư vấn online HIV', N'ONLINE', N'Dịch vụ tư vấn trực tuyến về HIV/AIDS');
+
+-- Thêm slot 09:00-09:30 cho ngày 2025-07-09
+INSERT INTO schedule (created_at, date, end_time, is_available, start_time, time_slots, updated_at, doctor_id)
+VALUES (
+  GETDATE(), 
+  '2025-07-09', 
+  '2025-07-09 09:30:00.000', 
+  1, 
+  '2025-07-09 09:00:00.000', 
+  '["09:00-09:30"]', 
+  GETDATE(), 
+  1
+);
+
+-- Thêm slot 10:00-10:30 cho ngày 2025-07-09
+INSERT INTO schedule (created_at, date, end_time, is_available, start_time, time_slots, updated_at, doctor_id)
+VALUES (
+  GETDATE(), 
+  '2025-07-09', 
+  '2025-07-09 10:30:00.000', 
+  1, 
+  '2025-07-09 10:00:00.000', 
+  '["10:00-10:30"]', 
+  GETDATE(), 
+  1
+);
+
+-- Thêm slot 09:00-09:30 cho ngày 2025-07-10
+INSERT INTO schedule (created_at, date, end_time, is_available, start_time, time_slots, updated_at, doctor_id)
+VALUES (
+  GETDATE(), 
+  '2025-07-10', 
+  '2025-07-10 09:30:00.000', 
+  1, 
+  '2025-07-10 09:00:00.000', 
+  '["09:00-09:30"]', 
+  GETDATE(), 
+  1
+);
+
+/////////////////////////////////////////////////////////
+
+    ALTER TABLE users
+ADD
+    birth_date DATE NOT NULL DEFAULT '2000-01-01',
+    treatment_start_date DATE NOT NULL DEFAULT '2000-01-01';
