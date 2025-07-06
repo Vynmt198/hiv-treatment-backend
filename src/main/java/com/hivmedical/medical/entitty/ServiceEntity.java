@@ -13,7 +13,6 @@ public class ServiceEntity {
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
 
-
   @Nationalized
   @Column(nullable = false)
   private String name;
