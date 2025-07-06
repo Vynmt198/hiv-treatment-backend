@@ -35,8 +35,8 @@ public class DoctorController {
   // Read (danh sách với tìm kiếm và phân trang)
   @GetMapping
   public ResponseEntity<Page<DoctorDTO>> getDoctors(
-          @RequestParam(required = false) String search,
-          @RequestParam(required = false) String searchBy,
+          @RequestParam(name = "search", required = false) String search,
+          @RequestParam(name = "searchBy", required = false) String searchBy,
           Pageable pageable) {
     return ResponseEntity.ok(doctorService.getDoctors(search, searchBy, pageable));
   }
