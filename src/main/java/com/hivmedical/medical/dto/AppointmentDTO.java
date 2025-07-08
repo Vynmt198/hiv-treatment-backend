@@ -34,6 +34,12 @@ public class AppointmentDTO {
   private String gender;
   private String description;
 
+  private String fullName;
+
+  private String aliasName;
+
+  private String birthDate;
+
   public AppointmentDTO() {
   }
 
@@ -169,5 +175,29 @@ public class AppointmentDTO {
 
   public void setDescription(String description) {
     this.description = description;
+  }
+
+  public String getFullName() {
+    return fullName;
+  }
+
+  public void setFullName(String fullName) {
+    this.fullName = fullName;
+  }
+
+  public String getAliasName() {
+    return aliasName;
+  }
+
+  public void setAliasName(String aliasName) {
+    this.aliasName = aliasName;
+  }
+
+  public String getBirthDate() {
+    return birthDate;
+  }
+
+  public void setBirthDate(String birthDate) {
+    this.birthDate = birthDate;
   }
 }

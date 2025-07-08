@@ -17,6 +17,7 @@ public class AnonymousOnlineDTO {
     @NotNull
     @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate date;
+    private String birthDate;
 
     public AnonymousOnlineDTO() {
     }
@@ -67,5 +68,13 @@ public class AnonymousOnlineDTO {
 
     public void setDate(LocalDate date) {
         this.date = date;
+    }
+
+    public String getBirthDate() {
+        return birthDate;
+    }
+
+    public void setBirthDate(String birthDate) {
+        this.birthDate = birthDate;
     }
 }

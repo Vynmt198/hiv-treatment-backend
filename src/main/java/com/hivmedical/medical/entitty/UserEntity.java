@@ -40,7 +40,7 @@ public class UserEntity {
   private String email;
 
   @Nationalized
-  @Column(length = 255)
+  @Column(length = 255, columnDefinition = "NVARCHAR(255)")
   private String fullName;
 
   @Column(nullable = false)
@@ -65,16 +65,16 @@ public class UserEntity {
   @Column(length = 10)
   private String gender;
 
-  @Column(length = 255)
+  @Column(length = 255, columnDefinition = "NVARCHAR(255)")
   private String address;
 
-  @Column(nullable = false)
+  @Column(nullable = true)
   private LocalDate birthDate;
 
   @Column(length = 255)
   private String hivStatus;
 
-  @Column(nullable = false)
+  @Column(nullable = true)
   private LocalDate treatmentStartDate;
 
   @PrePersist
