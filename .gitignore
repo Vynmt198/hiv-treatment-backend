@@ -38,3 +38,7 @@ build/
 
 # Bỏ qua toàn bộ thư mục log
 log/
+# Logs
+logs/
+*.log
+*.gz

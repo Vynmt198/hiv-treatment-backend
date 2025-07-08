@@ -7,21 +7,25 @@ import com.hivmedical.medical.entitty.AppointmentEntity;
 import com.hivmedical.medical.entitty.Doctor;
 import com.hivmedical.medical.entitty.Schedule;
 import com.hivmedical.medical.entitty.ServiceEntity;
-import com.hivmedical.medical.entitty.UserEntity;
+import com.hivmedical.medical.entitty.Account;
 import com.hivmedical.medical.repository.AppointmentRepository;
 import com.hivmedical.medical.repository.DoctorRepository;
 import com.hivmedical.medical.repository.ServiceRepository;
-import com.hivmedical.medical.repository.UserRepositoty;
+import com.hivmedical.medical.repository.AccountRepository;
 import java.time.format.DateTimeParseException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.time.LocalDate;
+import com.hivmedical.medical.entitty.PatientProfile;
+import com.hivmedical.medical.repository.PatientProfileRepository;
+import com.hivmedical.medical.repository.ScheduleRepository;
 
 @Service
 public class AppointmentService {
@@ -30,7 +34,7 @@ public class AppointmentService {
   private AppointmentRepository appointmentRepository;
 
   @Autowired
-  private UserRepositoty userRepository;
+  private AccountRepository accountRepository;
 
   @Autowired
   private ServiceRepository serviceRepository;
@@ -41,10 +45,33 @@ public class AppointmentService {
   @Autowired
   private ScheduleService scheduleService;
 
+  @Autowired
+  private ScheduleRepository scheduleRepository;
+
+  @Autowired
+  private PatientProfileRepository patientProfileRepository;
+
+  @Transactional
   public AppointmentDTO createAppointment(AppointmentDTO dto) {
+    // Validate input
+    if (dto.getAppointmentDate() == null || dto.getAppointmentDate().isEmpty()) {
+      throw new IllegalArgumentException("Ngày khám không được để trống");
+    }
+    if (dto.getFullName() == null || dto.getFullName().isEmpty()) {
+      throw new IllegalArgumentException("Họ tên không được để trống");
+    }
+    if (dto.getPhone() != null && !dto.getPhone().matches("^[0-9]{9,15}$")) {
+      throw new IllegalArgumentException("Số điện thoại không hợp lệ");
+    }
+    // Check duplicate appointment for user at the same time
     String username = SecurityContextHolder.getContext().getAuthentication().getName();
-    UserEntity user = userRepository.findByUsername(username)
+    Account user = accountRepository.findByUsername(username)
         .orElseThrow(() -> new IllegalArgumentException("Người dùng không tồn tại: " + username));
+    List<AppointmentEntity> existing = appointmentRepository.findByUserUsername(username);
+    if (existing.stream().anyMatch(a -> a.getAppointmentDate() != null
+        && a.getAppointmentDate().toString().equals(dto.getAppointmentDate()) && !a.getStatus().equals("CANCELLED"))) {
+      throw new IllegalArgumentException("Bạn đã có lịch khám vào thời gian này");
+    }
     ServiceEntity service = serviceRepository.findById(dto.getServiceId())
         .orElseThrow(() -> new RuntimeException("Service not found"));
     Doctor doctor = doctorRepository.findById(dto.getDoctorId())
@@ -80,9 +107,9 @@ public class AppointmentService {
         }
         entity.setAppointmentDate(parsedAppointmentDate);
 
-        final LocalDateTime finalAppointmentDate = parsedAppointmentDate; // Effectively final
+        final LocalDateTime finalAppointmentDate = parsedAppointmentDate;
         List<Schedule> availableSchedules = scheduleService.getAvailableSchedules(dto.getDoctorId(),
-            LocalDateTime.now());
+            parsedAppointmentDate.toLocalDate());
         boolean isAvailable = availableSchedules.stream()
             .anyMatch(schedule -> schedule.getStartTime().equals(finalAppointmentDate));
         if (!isAvailable) {
@@ -98,13 +125,26 @@ public class AppointmentService {
         }
         bookedSchedule.setAvailable(false);
         scheduleService.markScheduleAsBooked(bookedSchedule.getId());
-      } catch (Exception e) {
-        throw new IllegalArgumentException("Định dạng ngày giờ không hợp lệ: " + e.getMessage());
+      } catch (DateTimeParseException e) {
+        throw new IllegalArgumentException("Định dạng ngày giờ không hợp lệ: " + dto.getAppointmentDate());
       }
     }
 
     entity.setStatus("PENDING");
     AppointmentEntity saved = appointmentRepository.save(entity);
+    PatientProfile profile = patientProfileRepository.findByAccount(user).orElse(null);
+    if (profile == null) {
+      profile = new PatientProfile();
+      profile.setAccount(user);
+      profile.setFullName(dto.getFullName());
+      if (dto.getBirthDate() != null) {
+        profile.setBirthDate(LocalDate.parse(dto.getBirthDate()));
+      } else {
+        profile.setBirthDate(LocalDate.now());
+      }
+      profile.setTreatmentStartDate(LocalDate.now());
+      patientProfileRepository.save(profile);
+    }
     return mapToDTO(saved);
   }
 
@@ -122,25 +162,43 @@ public class AppointmentService {
         .collect(Collectors.toList());
   }
 
+  @Transactional
   public AppointmentDTO createOnlineAppointment(OnlineAppointmentDTO dto) {
-    // Tìm bác sĩ chuyên khoa HIV/AIDS còn slot trống vào ngày dto.getDate()
+    // Validate input
+    if (dto.getEmail() == null || !dto.getEmail().matches("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$")) {
+      throw new IllegalArgumentException("Email không hợp lệ");
+    }
+    if (dto.getFullName() == null && dto.getAliasName() == null) {
+      throw new IllegalArgumentException("Cần nhập họ tên hoặc bí danh");
+    }
+    if (dto.getPhone() != null && !dto.getPhone().matches("^[0-9]{9,15}$")) {
+      throw new IllegalArgumentException("Số điện thoại không hợp lệ");
+    }
+    // Check duplicate online appointment for email at the same time
+    List<AppointmentEntity> existing = appointmentRepository.findByUserEmail(dto.getEmail());
+    if (existing.stream().anyMatch(
+        a -> a.getAppointmentDate() != null && a.getAppointmentDate().toLocalDate().toString().equals(dto.getDate())
+            && !a.getStatus().equals("CANCELLED"))) {
+      throw new IllegalArgumentException("Bạn đã có lịch online vào ngày này");
+    }
+    // Tìm bác sĩ chuyên khoa Chuyên khoa HIV/AIDS còn slot trống vào ngày
+    // dto.getDate()
     // Ưu tiên slot đầu tiên còn trống
     LocalDate date = LocalDate.parse(dto.getDate());
-    List<Doctor> doctors = doctorRepository.findBySpecializationContainingIgnoreCase("HIV/AIDS");
+    List<Doctor> doctors = doctorRepository.findBySpecializationContainingIgnoreCase("Chuyên khoa HIV/AIDS");
     for (Doctor doctor : doctors) {
       List<Schedule> schedules = scheduleService.getAvailableSchedules(doctor.getId(), date);
       for (Schedule schedule : schedules) {
         if (schedule.isAvailable()) {
           // Tạo user nếu chưa có
-          UserEntity user = userRepository.findByEmail(dto.getEmail()).orElseGet(() -> {
-            UserEntity newUser = new UserEntity();
-            newUser.setFullName(dto.getFullName());
+          Account user = accountRepository.findByEmail(dto.getEmail()).orElseGet(() -> {
+            Account newUser = new Account();
             newUser.setEmail(dto.getEmail());
             newUser.setUsername(dto.getEmail());
             newUser.setPasswordHash("");
             newUser.setRole(com.hivmedical.medical.entitty.Role.PATIENT);
             newUser.setEnabled(true);
-            return userRepository.save(newUser);
+            return accountRepository.save(newUser);
           });
           // Tạo appointment
           AppointmentEntity entity = new AppointmentEntity();
@@ -159,30 +217,51 @@ public class AppointmentService {
           entity.setDescription(dto.getDescription());
           AppointmentEntity saved = appointmentRepository.save(entity);
           scheduleService.markScheduleAsBooked(schedule.getId());
+          PatientProfile profile = patientProfileRepository.findByAccount(user).orElse(null);
+          if (profile == null) {
+            profile = new PatientProfile();
+            profile.setAccount(user);
+            profile.setFullName(dto.getFullName() != null ? dto.getFullName() : dto.getAliasName());
+            if (dto.getBirthDate() != null && !dto.getBirthDate().isEmpty()) {
+              profile.setBirthDate(LocalDate.parse(dto.getBirthDate()));
+            } else {
+              profile.setBirthDate(LocalDate.now());
+            }
+            profile.setTreatmentStartDate(LocalDate.now());
+            patientProfileRepository.save(profile);
+          }
           return mapToDTO(saved);
         }
       }
     }
-    throw new RuntimeException("Không còn slot trống cho ngày đã chọn");
+    throw new IllegalArgumentException("Không còn slot trống cho ngày đã chọn");
   }
 
+  @Transactional
   public AppointmentDTO createAnonymousOnlineAppointment(AnonymousOnlineDTO dto) {
-    // Tìm bác sĩ chuyên khoa HIV/AIDS còn slot trống (ưu tiên slot đầu tiên)
+    // Validate input
+    if (dto.getAliasName() == null || dto.getAliasName().isEmpty()) {
+      throw new IllegalArgumentException("Cần nhập bí danh");
+    }
+    if (dto.getPhone() != null && !dto.getPhone().matches("^[0-9]{9,15}$")) {
+      throw new IllegalArgumentException("Số điện thoại không hợp lệ");
+    }
+    // Tìm bác sĩ chuyên khoa Chuyên khoa HIV/AIDS còn slot trống (ưu tiên slot đầu
+    // tiên)
     LocalDate date = dto.getDate();
-    List<Doctor> doctors = doctorRepository.findBySpecializationContainingIgnoreCase("HIV/AIDS");
+    List<Doctor> doctors = doctorRepository.findBySpecializationContainingIgnoreCase("Chuyên khoa HIV/AIDS");
     for (Doctor doctor : doctors) {
       List<Schedule> schedules = scheduleService.getAvailableSchedules(doctor.getId(), date);
       for (Schedule schedule : schedules) {
         if (schedule.isAvailable()) {
           // Tạo user ẩn danh tạm thời
-          UserEntity user = new UserEntity();
-          user.setFullName(dto.getAliasName());
+          Account user = new Account();
           user.setEmail("anonymous_" + System.currentTimeMillis() + "@anonymous.com");
           user.setUsername("anonymous_" + System.currentTimeMillis());
           user.setPasswordHash("");
           user.setRole(com.hivmedical.medical.entitty.Role.PATIENT);
           user.setEnabled(true);
-          user = userRepository.save(user);
+          user = accountRepository.save(user);
           // Tạo appointment
           AppointmentEntity entity = new AppointmentEntity();
           entity.setUser(user);
@@ -200,11 +279,24 @@ public class AppointmentService {
           entity.setDescription(dto.getDescription());
           AppointmentEntity saved = appointmentRepository.save(entity);
           scheduleService.markScheduleAsBooked(schedule.getId());
+          PatientProfile profile = patientProfileRepository.findByAccount(user).orElse(null);
+          if (profile == null) {
+            profile = new PatientProfile();
+            profile.setAccount(user);
+            profile.setFullName(dto.getAliasName());
+            if (dto.getBirthDate() != null && !dto.getBirthDate().isEmpty()) {
+              profile.setBirthDate(LocalDate.parse(dto.getBirthDate()));
+            } else {
+              profile.setBirthDate(LocalDate.now());
+            }
+            profile.setTreatmentStartDate(LocalDate.now());
+            patientProfileRepository.save(profile);
+          }
           return mapToDTO(saved);
         }
       }
     }
-    throw new RuntimeException("Không còn slot trống cho ngày đã chọn");
+    throw new IllegalArgumentException("Không còn slot trống cho ngày đã chọn");
   }
 
   private AppointmentDTO mapToDTO(AppointmentEntity entity) {
@@ -228,6 +320,13 @@ public class AppointmentService {
     dto.setPhone(entity.getPhone());
     dto.setGender(entity.getGender());
     dto.setDescription(entity.getDescription());
+    PatientProfile profile = patientProfileRepository.findByAccount(entity.getUser()).orElse(null);
+    String fullName = (profile != null) ? profile.getFullName() : null;
+    dto.setFullName(fullName);
     return dto;
+  }
+
+  public List<Schedule> getAvailableSchedules(Long doctorId, LocalDateTime startTime) {
+    return scheduleRepository.findByDoctorIdAndIsAvailableTrueAndStartTimeAfter(doctorId, startTime);
   }
 }

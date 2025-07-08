@@ -50,7 +50,8 @@ public class AuthAPI {
   private String jwtSecret;
 
   @PostMapping("/register")
-  public ResponseEntity<Map<String, Object>> registerRequest(@Valid @RequestBody RegisterRequest request, BindingResult result) {
+  public ResponseEntity<Map<String, Object>> registerRequest(@Valid @RequestBody RegisterRequest request,
+      BindingResult result) {
     logger.info("Processing registration request for email: {}", request.getEmail());
     Map<String, Object> response = new HashMap<>();
     try {
@@ -59,10 +60,19 @@ public class AuthAPI {
         response.put("message", result.getAllErrors().get(0).getDefaultMessage());
         return ResponseEntity.badRequest().body(response);
       }
-      if (userService.isEmailExists(request.getEmail())) {
-        response.put("success", false);
-        response.put("message", "Email đã được sử dụng");
-        return ResponseEntity.badRequest().body(response);
+      UserEntity existingUser = userService.getUserByEmail(request.getEmail());
+      if (existingUser != null) {
+        if (existingUser.isEnabled()) {
+          response.put("success", false);
+          response.put("message", "Email đã được sử dụng");
+          return ResponseEntity.badRequest().body(response);
+        } else {
+          // Gửi lại OTP cho user chưa xác thực
+          userService.registerUserWithOtp(existingUser);
+          response.put("success", true);
+          response.put("message", "OTP đã được gửi lại về email. Vui lòng kiểm tra email để xác thực!");
+          return ResponseEntity.ok(response);
+        }
       }
       if (!request.getPassword().equals(request.getConfirmPassword())) {
         response.put("success", false);
@@ -175,7 +185,8 @@ public class AuthAPI {
   }
 
   @PostMapping("/verify")
-  public ResponseEntity<Map<String, Object>> verify(@RequestHeader(value = HttpHeaders.AUTHORIZATION, required = false) String auth) {
+  public ResponseEntity<Map<String, Object>> verify(
+      @RequestHeader(value = HttpHeaders.AUTHORIZATION, required = false) String auth) {
     logger.info("Verifying token: {}", auth);
     Map<String, Object> response = new HashMap<>();
     if (auth == null || !auth.startsWith("Bearer ")) {
@@ -219,7 +230,8 @@ public class AuthAPI {
   }
 
   @PostMapping("/forgot-password")
-  public ResponseEntity<Map<String, Object>> forgotPassword(@Valid @RequestBody ForgotPasswordOtpRequest req, BindingResult result) {
+  public ResponseEntity<Map<String, Object>> forgotPassword(@Valid @RequestBody ForgotPasswordOtpRequest req,
+      BindingResult result) {
     logger.info("Processing forgot password request for email: {}", req.getEmail());
     Map<String, Object> response = new HashMap<>();
     if (result.hasErrors()) {
@@ -247,7 +259,8 @@ public class AuthAPI {
   }
 
   @PostMapping("/reset-password-otp")
-  public ResponseEntity<Map<String, Object>> resetPasswordOtp(@Valid @RequestBody VerifyOtpRequest req, BindingResult result) {
+  public ResponseEntity<Map<String, Object>> resetPasswordOtp(@Valid @RequestBody VerifyOtpRequest req,
+      BindingResult result) {
     logger.info("Processing reset password OTP for email: {}", req.getEmail());
     Map<String, Object> response = new HashMap<>();
     if (result.hasErrors()) {
