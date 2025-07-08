@@ -7,6 +7,8 @@ public class OnlineAppointmentDTO {
     private String phone;
     private String date;
     private String description;
+    private String aliasName;
+    private String birthDate;
 
     public String getFullName() {
         return fullName;
@@ -54,5 +56,21 @@ public class OnlineAppointmentDTO {
 
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    public String getAliasName() {
+        return aliasName;
+    }
+
+    public void setAliasName(String aliasName) {
+        this.aliasName = aliasName;
+    }
+
+    public String getBirthDate() {
+        return birthDate;
+    }
+
+    public void setBirthDate(String birthDate) {
+        this.birthDate = birthDate;
     }
 }

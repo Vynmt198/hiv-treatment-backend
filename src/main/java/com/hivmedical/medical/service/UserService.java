@@ -36,6 +36,8 @@ public class UserService {
     if (user.getEmail() == null || user.getEmail().trim().isEmpty()) {
       throw new IllegalArgumentException("Email không được để trống");
     }
+    // XÓA OTP CŨ TRƯỚC KHI TẠO MỚI
+    tokenRepository.deleteByEmailAndType(user.getEmail(), "EMAIL_VERIFICATION");
     String otp = generateOtp();
     VerificationToken token = new VerificationToken();
     token.setEmail(user.getEmail());
@@ -142,7 +144,6 @@ public class UserService {
     user.setPhone(dto.getPhone());
     user.setAddress(dto.getAddress());
     user.setBirthDate(dto.getBirthDate());
-    user.setHivStatus(dto.getHivStatus());
     user.setTreatmentStartDate(dto.getTreatmentStartDate());
     userRepository.save(user);
     return mapToProfileDTO(user);

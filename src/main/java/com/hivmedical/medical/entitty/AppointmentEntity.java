@@ -16,7 +16,7 @@ public class AppointmentEntity {
 
   @ManyToOne
   @JoinColumn(nullable = false)
-  private UserEntity user;
+  private Account user;
 
   @ManyToOne
   @JoinColumn(nullable = false)
@@ -66,9 +66,9 @@ public class AppointmentEntity {
   public AppointmentEntity() {
   }
 
-  public AppointmentEntity(Long id, UserEntity user, ServiceEntity service, Doctor doctor,
+  public AppointmentEntity(Long id, Account user, ServiceEntity service, Doctor doctor,
       String appointmentType, LocalDateTime appointmentDate, String status, LocalDateTime createdAt,
-      LocalDateTime updatedAt) {
+      LocalDateTime updatedAt, String phone, String gender, String description) {
     this.id = id;
     this.user = user;
     this.service = service;
@@ -91,11 +91,11 @@ public class AppointmentEntity {
     this.id = id;
   }
 
-  public UserEntity getUser() {
+  public Account getUser() {
     return user;
   }
 
-  public void setUser(UserEntity user) {
+  public void setUser(Account user) {
     this.user = user;
   }
 
