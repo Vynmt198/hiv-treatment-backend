@@ -26,6 +26,7 @@ import java.time.LocalDate;
 import com.hivmedical.medical.entitty.PatientProfile;
 import com.hivmedical.medical.repository.PatientProfileRepository;
 import com.hivmedical.medical.repository.ScheduleRepository;
+import com.hivmedical.medical.entitty.AppointmentStatus;
 
 @Service
 public class AppointmentService {
@@ -130,7 +131,7 @@ public class AppointmentService {
       }
     }
 
-    entity.setStatus("PENDING");
+    entity.setStatus(AppointmentStatus.valueOf(dto.getStatus()));
     AppointmentEntity saved = appointmentRepository.save(entity);
     PatientProfile profile = patientProfileRepository.findByAccount(user).orElse(null);
     if (profile == null) {
@@ -209,7 +210,7 @@ public class AppointmentService {
           entity.setDoctor(doctor);
           entity.setAppointmentType("FIRST_VISIT");
           entity.setAppointmentDate(schedule.getStartTime());
-          entity.setStatus("ONLINE_PENDING");
+          entity.setStatus(AppointmentStatus.PENDING);
           entity.setCreatedAt(LocalDateTime.now());
           entity.setUpdatedAt(LocalDateTime.now());
           entity.setPhone(dto.getPhone());
@@ -271,7 +272,7 @@ public class AppointmentService {
           entity.setDoctor(doctor);
           entity.setAppointmentType("FIRST_VISIT");
           entity.setAppointmentDate(schedule.getStartTime());
-          entity.setStatus("ONLINE_ANONYMOUS_PENDING");
+          entity.setStatus(AppointmentStatus.PENDING);
           entity.setCreatedAt(LocalDateTime.now());
           entity.setUpdatedAt(LocalDateTime.now());
           entity.setPhone(dto.getPhone());
@@ -299,6 +300,57 @@ public class AppointmentService {
     throw new IllegalArgumentException("Không còn slot trống cho ngày đã chọn");
   }
 
+  @Transactional
+  public AppointmentDTO updateAppointmentStatus(Long id, String statusStr) {
+    AppointmentEntity entity = appointmentRepository.findById(id)
+        .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy lịch hẹn với id: " + id));
+    if (statusStr == null || statusStr.isEmpty()) {
+      throw new IllegalArgumentException("Trạng thái không hợp lệ");
+    }
+    AppointmentStatus newStatus;
+    try {
+      newStatus = AppointmentStatus.valueOf(statusStr);
+    } catch (IllegalArgumentException e) {
+      throw new IllegalArgumentException("Trạng thái không hợp lệ: " + statusStr);
+    }
+    // Kiểm soát luồng chuyển đổi trạng thái hợp lệ
+    AppointmentStatus current = entity.getStatus();
+    if (!isValidStatusTransition(current, newStatus)) {
+      throw new IllegalArgumentException("Không thể chuyển trạng thái từ " + current + " sang " + newStatus);
+    }
+    entity.setStatus(newStatus);
+    AppointmentEntity saved = appointmentRepository.save(entity);
+    return mapToDTO(saved);
+  }
+
+  private boolean isValidStatusTransition(AppointmentStatus current, AppointmentStatus next) {
+    switch (current) {
+      case PENDING:
+        return next == AppointmentStatus.CHECKED_IN || next == AppointmentStatus.ABSENT;
+      case CHECKED_IN:
+        return next == AppointmentStatus.IN_PROGRESS || next == AppointmentStatus.ABSENT;
+      case IN_PROGRESS:
+        return next == AppointmentStatus.COMPLETED || next == AppointmentStatus.ABSENT;
+      case COMPLETED:
+      case ABSENT:
+        return false;
+      default:
+        return false;
+    }
+  }
+
+  public List<AppointmentDTO> getAppointmentsByStatus(String statusStr) {
+    AppointmentStatus status;
+    try {
+      status = AppointmentStatus.valueOf(statusStr);
+    } catch (IllegalArgumentException e) {
+      throw new IllegalArgumentException("Trạng thái không hợp lệ: " + statusStr);
+    }
+    return appointmentRepository.findByStatus(status).stream()
+        .map(this::mapToDTO)
+        .collect(Collectors.toList());
+  }
+
   private AppointmentDTO mapToDTO(AppointmentEntity entity) {
     AppointmentDTO dto = new AppointmentDTO();
     dto.setId(entity.getId());
@@ -316,7 +368,7 @@ public class AppointmentService {
     if (entity.getAppointmentDate() != null) {
       dto.setAppointmentDate(entity.getAppointmentDate().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
     }
-    dto.setStatus(entity.getStatus());
+    dto.setStatus(entity.getStatus().name());
     dto.setPhone(entity.getPhone());
     dto.setGender(entity.getGender());
     dto.setDescription(entity.getDescription());
