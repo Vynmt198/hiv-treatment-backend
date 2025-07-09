@@ -1,7 +1,6 @@
 package com.hivmedical.medical.entitty;
 
-import com.hivmedical.medical.entitty.ServiceEntity;
-import com.hivmedical.medical.entitty.UserEntity;
+import com.hivmedical.medical.entitty.AppointmentStatus;
 import jakarta.persistence.*;
 import lombok.Data;
 import java.time.LocalDateTime;
@@ -30,8 +29,9 @@ public class AppointmentEntity {
 
   private LocalDateTime appointmentDate;
 
+  @Enumerated(EnumType.STRING)
   @Column(nullable = false, columnDefinition = "NVARCHAR(50) COLLATE Vietnamese_CI_AS")
-  private String status;
+  private AppointmentStatus status;
 
   @Column(length = 50)
   private String phone;
@@ -51,7 +51,7 @@ public class AppointmentEntity {
     createdAt = LocalDateTime.now();
     updatedAt = LocalDateTime.now();
     if (status == null) {
-      status = "PENDING";
+      status = AppointmentStatus.PENDING;
     }
     if (appointmentType == null) {
       appointmentType = "FIRST_VISIT";
@@ -67,7 +67,7 @@ public class AppointmentEntity {
   }
 
   public AppointmentEntity(Long id, Account user, ServiceEntity service, Doctor doctor,
-      String appointmentType, LocalDateTime appointmentDate, String status, LocalDateTime createdAt,
+      String appointmentType, LocalDateTime appointmentDate, AppointmentStatus status, LocalDateTime createdAt,
       LocalDateTime updatedAt, String phone, String gender, String description) {
     this.id = id;
     this.user = user;
@@ -123,11 +123,11 @@ public class AppointmentEntity {
     this.appointmentDate = appointmentDate;
   }
 
-  public String getStatus() {
+  public AppointmentStatus getStatus() {
     return status;
   }
 
-  public void setStatus(String status) {
+  public void setStatus(AppointmentStatus status) {
     this.status = status;
   }
 

@@ -4,6 +4,7 @@ import com.hivmedical.medical.entitty.AppointmentEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
+import com.hivmedical.medical.entitty.AppointmentStatus;
 
 public interface AppointmentRepository extends JpaRepository<AppointmentEntity, Long> {
     List<AppointmentEntity> findByUserUsername(String username);
@@ -14,7 +15,7 @@ public interface AppointmentRepository extends JpaRepository<AppointmentEntity, 
 
     List<AppointmentEntity> findByDoctorId(Long doctorId);
 
-    List<AppointmentEntity> findByStatus(String status);
+    List<AppointmentEntity> findByStatus(AppointmentStatus status);
 
     List<AppointmentEntity> findByUserUsernameAndStatus(String username, String status);
 }
