@@ -33,9 +33,22 @@ public class AppointmentController {
   }
 
   @GetMapping
-  @PreAuthorize("hasRole('ADMIN')")
-  public ResponseEntity<List<AppointmentDTO>> getAllAppointments() {
-    return ResponseEntity.ok(appointmentService.getAllAppointments());
+  @PreAuthorize("hasAnyRole('STAFF', 'ADMIN')")
+  public ResponseEntity<List<AppointmentDTO>> getAppointments(
+      @RequestParam(value = "status", required = false) String status) {
+    if (status != null && !status.isEmpty()) {
+      return ResponseEntity.ok(appointmentService.getAppointmentsByStatus(status));
+    } else {
+      return ResponseEntity.ok(appointmentService.getAllAppointments());
+    }
+  }
+
+  @PatchMapping("/{id}/status")
+  @PreAuthorize("hasAnyRole('STAFF', 'ADMIN')")
+  public ResponseEntity<AppointmentDTO> updateAppointmentStatus(@PathVariable Long id,
+      @RequestBody AppointmentDTO dto) {
+    AppointmentDTO updated = appointmentService.updateAppointmentStatus(id, dto.getStatus());
+    return ResponseEntity.ok(updated);
   }
 
   @PostMapping("/online")
