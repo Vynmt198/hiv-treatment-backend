@@ -9,6 +9,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import jakarta.validation.Valid;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/patients")
 public class PatientController {
@@ -31,5 +33,11 @@ public class PatientController {
     String email = authentication.getName();
     PatientProfileDTO updated = userService.updatePatientProfile(email, dto);
     return ResponseEntity.ok(updated);
+  }
+
+  @GetMapping
+  @PreAuthorize("hasAnyRole('STAFF', 'ADMIN')")
+  public ResponseEntity<List<PatientProfileDTO>> getAllPatients() {
+    return ResponseEntity.ok(userService.getAllPatients());
   }
 }
