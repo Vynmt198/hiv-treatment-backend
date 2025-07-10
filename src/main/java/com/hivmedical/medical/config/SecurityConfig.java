@@ -55,6 +55,7 @@ public class SecurityConfig {
                             .requestMatchers(HttpMethod.DELETE, "/api/doctors/**","/api/blogs/**").hasRole("ADMIN")
               .requestMatchers("/api/appointments/me", "/api/appointments/patient/**").hasRole("PATIENT")
               .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                  .requestMatchers("/api/admin/doctors/official", "/api/admin/appointments").hasRole("ADMIN")
               .requestMatchers("/api/doctor/**").hasRole("DOCTOR")
               .requestMatchers("/api/patient/**").hasRole("PATIENT")
               .requestMatchers("/api/appointments/anonymous-online").permitAll()
