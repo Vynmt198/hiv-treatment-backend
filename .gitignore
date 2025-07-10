@@ -31,3 +31,15 @@ build/
 
 ### VS Code ###
 .vscode/
+
+
+
+# Bỏ qua tất cả các file .log
+*.log
+
+# Bỏ qua toàn bộ thư mục log
+log/
+# Logs
+logs/
+*.log
+*.gz
