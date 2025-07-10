@@ -1,5 +1,6 @@
 package com.hivmedical.medical.service;
 
+<<<<<<< HEAD
 import com.hivmedical.medical.entitty.UserEntity;
 import com.hivmedical.medical.entitty.VerificationToken;
 import com.hivmedical.medical.entitty.Doctor;
@@ -7,6 +8,15 @@ import com.hivmedical.medical.entitty.Role;
 import com.hivmedical.medical.repository.UserRepositoty;
 import com.hivmedical.medical.repository.VerificationTokenRepository;
 import org.slf4j.LoggerFactory;
+=======
+import com.hivmedical.medical.dto.PatientProfileDTO;
+import com.hivmedical.medical.entitty.UserEntity;
+import com.hivmedical.medical.entitty.VerificationToken;
+import com.hivmedical.medical.repository.UserRepositoty;
+import com.hivmedical.medical.repository.VerificationTokenRepository;
+import com.hivmedical.medical.entitty.PatientProfile;
+import com.hivmedical.medical.repository.PatientProfileRepository;
+>>>>>>> 012b04e912d66295878d74e12bf2b16c81f77ba0
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -22,8 +32,13 @@ import com.hivmedical.medical.repository.DoctorRepository;
 import java.time.LocalDateTime;
 import java.util.Optional;
 import java.security.SecureRandom;
+<<<<<<< HEAD
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+=======
+import java.util.List;
+import java.util.stream.Collectors;
+>>>>>>> 012b04e912d66295878d74e12bf2b16c81f77ba0
 
 @Service
 public class UserService {
@@ -40,9 +55,14 @@ public class UserService {
   @Autowired
   private EmailService emailService;
 
+<<<<<<< HEAD
   // [NODE] Thêm khai báo biến tĩnh PASSWORD_CHARACTERS để tránh lỗi trong generateRandomPassword
   private static final String PASSWORD_CHARACTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*";
   private static final Logger logger = LoggerFactory.getLogger(UserService.class);
+=======
+  @Autowired
+  private PatientProfileRepository patientProfileRepository;
+>>>>>>> 012b04e912d66295878d74e12bf2b16c81f77ba0
 
   public boolean isEmailExists(String email) {
     return userRepository.existsByEmail(email);
@@ -52,6 +72,8 @@ public class UserService {
     if (user.getEmail() == null || user.getEmail().trim().isEmpty()) {
       throw new IllegalArgumentException("Email không được để trống");
     }
+    // XÓA OTP CŨ TRƯỚC KHI TẠO MỚI
+    tokenRepository.deleteByEmailAndType(user.getEmail(), "EMAIL_VERIFICATION");
     String otp = generateOtp();
     VerificationToken token = new VerificationToken();
     token.setEmail(user.getEmail());
@@ -143,6 +165,7 @@ public class UserService {
     return otp.toString();
   }
 
+<<<<<<< HEAD
   // [NODE] Thêm import cho DoctorRepository
 
 
@@ -239,5 +262,51 @@ public class UserService {
       password.append(PASSWORD_CHARACTERS.charAt(random.nextInt(PASSWORD_CHARACTERS.length())));
     }
     return password.toString();
+=======
+  public PatientProfileDTO getPatientProfile(String email) {
+    UserEntity user = userRepository.findByEmail(email)
+        .orElseThrow(() -> new RuntimeException("User not found"));
+    return mapToProfileDTO(user);
+  }
+
+  public PatientProfileDTO updatePatientProfile(String email, PatientProfileDTO dto) {
+    UserEntity user = userRepository.findByEmail(email)
+        .orElseThrow(() -> new RuntimeException("User not found"));
+    user.setFullName(dto.getFullName());
+    user.setGender(dto.getGender());
+    user.setPhone(dto.getPhone());
+    user.setAddress(dto.getAddress());
+    user.setBirthDate(dto.getBirthDate());
+    user.setTreatmentStartDate(dto.getTreatmentStartDate());
+    userRepository.save(user);
+    return mapToProfileDTO(user);
+  }
+
+  public List<PatientProfileDTO> getAllPatients() {
+    List<PatientProfile> profiles = patientProfileRepository.findAll();
+    return profiles.stream().map(this::mapToProfileDTO).collect(Collectors.toList());
+  }
+
+  private PatientProfileDTO mapToProfileDTO(UserEntity user) {
+    return new PatientProfileDTO(
+        user.getFullName(),
+        user.getGender(),
+        user.getPhone(),
+        user.getAddress(),
+        user.getBirthDate(),
+        user.getHivStatus(),
+        user.getTreatmentStartDate());
+  }
+
+  private PatientProfileDTO mapToProfileDTO(PatientProfile profile) {
+    return new PatientProfileDTO(
+        profile.getFullName(),
+        profile.getGender(),
+        profile.getPhone(),
+        profile.getAddress(),
+        profile.getBirthDate(),
+        profile.getHivStatus(),
+        profile.getTreatmentStartDate());
+>>>>>>> 012b04e912d66295878d74e12bf2b16c81f77ba0
   }
 }

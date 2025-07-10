@@ -10,6 +10,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 import java.time.LocalDateTime;
+import java.time.LocalDate;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -39,7 +40,7 @@ public class UserEntity {
   private String email;
 
   @Nationalized
-  @Column(length = 255)
+  @Column(length = 255, columnDefinition = "NVARCHAR(255)")
   private String fullName;
 
   @Column(nullable = false)
@@ -64,6 +65,18 @@ public class UserEntity {
   @Column(length = 10)
   private String gender;
 
+  @Column(length = 255, columnDefinition = "NVARCHAR(255)")
+  private String address;
+
+  @Column(nullable = true)
+  private LocalDate birthDate;
+
+  @Column(length = 255)
+  private String hivStatus;
+
+  @Column(nullable = true)
+  private LocalDate treatmentStartDate;
+
   @PrePersist
   protected void onCreate() {
     if (registrationDate == null) {
@@ -83,7 +96,8 @@ public class UserEntity {
   public UserEntity(Long userId, String username, String passwordHash, String email,
       String fullName,
       LocalDateTime registrationDate, LocalDateTime lastLoginDate, String profilePictureUrl,
-      Role role, boolean enabled, String phone, String gender) {
+      Role role, boolean enabled, String phone, String gender, String address, LocalDate birthDate, String hivStatus,
+      LocalDate treatmentStartDate) {
     this.userId = userId;
     this.username = username;
     this.passwordHash = passwordHash;
@@ -96,6 +110,10 @@ public class UserEntity {
     this.enabled = enabled;
     this.phone = phone;
     this.gender = gender;
+    this.address = address;
+    this.birthDate = birthDate;
+    this.hivStatus = hivStatus;
+    this.treatmentStartDate = treatmentStartDate;
   }
 
   public Long getUserId() {
@@ -192,5 +210,37 @@ public class UserEntity {
 
   public void setGender(String gender) {
     this.gender = gender;
+  }
+
+  public String getAddress() {
+    return address;
+  }
+
+  public void setAddress(String address) {
+    this.address = address;
+  }
+
+  public LocalDate getBirthDate() {
+    return birthDate;
+  }
+
+  public void setBirthDate(LocalDate birthDate) {
+    this.birthDate = birthDate;
+  }
+
+  public String getHivStatus() {
+    return hivStatus;
+  }
+
+  public void setHivStatus(String hivStatus) {
+    this.hivStatus = hivStatus;
+  }
+
+  public LocalDate getTreatmentStartDate() {
+    return treatmentStartDate;
+  }
+
+  public void setTreatmentStartDate(LocalDate treatmentStartDate) {
+    this.treatmentStartDate = treatmentStartDate;
   }
 }

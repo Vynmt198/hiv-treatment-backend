@@ -14,7 +14,13 @@ public interface DoctorRepository extends JpaRepository<Doctor, Long> {
 
   @Query("SELECT d FROM Doctor d WHERE LOWER(d.fullName) LIKE LOWER(CONCAT('%', :name, '%'))")
   Page<Doctor> findByNameContainingIgnoreCase(String name, Pageable pageable);
+
   Optional<Doctor> findByEmail(String email);
+
+  Optional<Doctor> findByAccountId(Long accountId);
+
+  Optional<Doctor> findByAccountUsername(String username);
+
   List<Doctor> findBySpecializationContainingIgnoreCase(String specialization);
   @Query("SELECT d FROM Doctor d WHERE d.user.userId = :userId")
   Optional<Doctor> findByUserId(Long userId);

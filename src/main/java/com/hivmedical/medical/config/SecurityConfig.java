@@ -21,17 +21,17 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 @Configuration
 public class SecurityConfig {
-    private static final Logger logger = LoggerFactory.getLogger(SecurityConfig.class);
+  private static final Logger logger = LoggerFactory.getLogger(SecurityConfig.class);
 
-    @Bean
-    public BCryptPasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
-    }
+  @Bean
+  public BCryptPasswordEncoder passwordEncoder() {
+    return new BCryptPasswordEncoder();
+  }
 
-    @Bean
-    public JwtAuthenticationFilter jwtAuthenticationFilter(@Value("${jwt.secret}") String jwtSecret) {
-        return new JwtAuthenticationFilter(jwtSecret);
-    }
+  @Bean
+  public JwtAuthenticationFilter jwtAuthenticationFilter(@Value("${jwt.secret}") String jwtSecret) {
+    return new JwtAuthenticationFilter(jwtSecret);
+  }
 
   @Bean
   public SecurityFilterChain filterChain(HttpSecurity http, JwtAuthenticationFilter jwtAuthenticationFilter)
@@ -45,21 +45,22 @@ public class SecurityConfig {
           logger.info("Setting up authorization rules");
           auth
               .requestMatchers("/api/auth/**", "/swagger-ui/**", "/v3/api-docs/**", "/error").permitAll()
-              .requestMatchers(HttpMethod.GET, "/api/doctors", "/api/doctors/**","/api/blogs/**").permitAll()
+              .requestMatchers(HttpMethod.GET, "/api/doctors", "/api/doctors/**", "/api/blogs/**").permitAll()
               .requestMatchers(HttpMethod.GET, "/api/services", "/api/services/**").permitAll()
               .requestMatchers(HttpMethod.POST, "/api/services").hasRole("ADMIN")
               .requestMatchers(HttpMethod.PUT, "/api/services/**").hasRole("ADMIN")
               .requestMatchers(HttpMethod.DELETE, "/api/services/**").hasRole("ADMIN")
-                            .requestMatchers(HttpMethod.POST, "/api/doctors","/api/blogs").hasRole("ADMIN")
-                            .requestMatchers(HttpMethod.PUT, "/api/doctors/**","/api/blogs/**").hasRole("ADMIN")
-                            .requestMatchers(HttpMethod.DELETE, "/api/doctors/**","/api/blogs/**").hasRole("ADMIN")
+              .requestMatchers(HttpMethod.POST, "/api/doctors", "/api/blogs").hasRole("ADMIN")
+              .requestMatchers(HttpMethod.PUT, "/api/doctors/**", "/api/blogs/**").hasRole("ADMIN")
+              .requestMatchers(HttpMethod.DELETE, "/api/doctors/**", "/api/blogs/**").hasRole("ADMIN")
+              .requestMatchers(HttpMethod.GET, "/api/schedules", "/api/schedules/**").permitAll()
               .requestMatchers("/api/appointments/me", "/api/appointments/patient/**").hasRole("PATIENT")
+              .requestMatchers(HttpMethod.POST, "/api/appointments").hasAnyRole("PATIENT", "ADMIN")
+              .requestMatchers("/api/appointments/anonymous").permitAll()
               .requestMatchers("/api/admin/**").hasRole("ADMIN")
                   .requestMatchers("/api/admin/doctors/official", "/api/admin/appointments").hasRole("ADMIN")
               .requestMatchers("/api/doctor/**").hasRole("DOCTOR")
               .requestMatchers("/api/patient/**").hasRole("PATIENT")
-              .requestMatchers("/api/appointments/anonymous-online").permitAll()
-              .requestMatchers("/api/appointments/online").hasAnyRole("PATIENT", "ADMIN")
               .anyRequest().authenticated();
         })
         .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
@@ -84,24 +85,23 @@ public class SecurityConfig {
         .build();
   }
 
+  @Bean
+  public CorsConfigurationSource corsConfigurationSource() {
+    CorsConfiguration configuration = new CorsConfiguration();
+    configuration.addAllowedOrigin("http://localhost:5173");
+    configuration.addAllowedMethod("*");
+    configuration.addAllowedHeader("*");
+    configuration.setAllowCredentials(true);
 
-    @Bean
-    public CorsConfigurationSource corsConfigurationSource() {
-        CorsConfiguration configuration = new CorsConfiguration();
-        configuration.addAllowedOrigin("http://localhost:5173");
-        configuration.addAllowedMethod("*");
-        configuration.addAllowedHeader("*");
-        configuration.setAllowCredentials(true);
+    UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+    source.registerCorsConfiguration("/**", configuration);
+    return source;
+  }
 
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", configuration);
-        return source;
-    }
-
-    @Bean
-    public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration)
-            throws Exception {
-        logger.info("Initializing AuthenticationManager");
-        return authenticationConfiguration.getAuthenticationManager();
-    }
+  @Bean
+  public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration)
+      throws Exception {
+    logger.info("Initializing AuthenticationManager");
+    return authenticationConfiguration.getAuthenticationManager();
+  }
 }
