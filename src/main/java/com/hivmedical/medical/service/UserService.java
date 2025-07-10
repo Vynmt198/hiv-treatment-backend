@@ -5,6 +5,8 @@ import com.hivmedical.medical.entitty.UserEntity;
 import com.hivmedical.medical.entitty.VerificationToken;
 import com.hivmedical.medical.repository.UserRepositoty;
 import com.hivmedical.medical.repository.VerificationTokenRepository;
+import com.hivmedical.medical.entitty.PatientProfile;
+import com.hivmedical.medical.repository.PatientProfileRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -12,6 +14,8 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.Optional;
 import java.security.SecureRandom;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class UserService {
@@ -27,6 +31,9 @@ public class UserService {
 
   @Autowired
   private EmailService emailService;
+
+  @Autowired
+  private PatientProfileRepository patientProfileRepository;
 
   public boolean isEmailExists(String email) {
     return userRepository.existsByEmail(email);
@@ -149,6 +156,11 @@ public class UserService {
     return mapToProfileDTO(user);
   }
 
+  public List<PatientProfileDTO> getAllPatients() {
+    List<PatientProfile> profiles = patientProfileRepository.findAll();
+    return profiles.stream().map(this::mapToProfileDTO).collect(Collectors.toList());
+  }
+
   private PatientProfileDTO mapToProfileDTO(UserEntity user) {
     return new PatientProfileDTO(
         user.getFullName(),
@@ -158,5 +170,16 @@ public class UserService {
         user.getBirthDate(),
         user.getHivStatus(),
         user.getTreatmentStartDate());
+  }
+
+  private PatientProfileDTO mapToProfileDTO(PatientProfile profile) {
+    return new PatientProfileDTO(
+        profile.getFullName(),
+        profile.getGender(),
+        profile.getPhone(),
+        profile.getAddress(),
+        profile.getBirthDate(),
+        profile.getHivStatus(),
+        profile.getTreatmentStartDate());
   }
 }
