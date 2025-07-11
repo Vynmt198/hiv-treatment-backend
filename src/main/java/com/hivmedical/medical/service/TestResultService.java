@@ -9,6 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class TestResultService {
@@ -41,6 +42,30 @@ public class TestResultService {
         if (entity.getAppointment() != null) {
             dto.setAppointmentId(entity.getAppointment().getId());
         }
+        dto.setStatus(entity.getStatus() != null ? entity.getStatus().name() : null);
+        dto.setResultValue(entity.getResultValue());
+        dto.setResultNote(entity.getResultNote());
+        dto.setCreatedAt(entity.getCreatedAt());
+        dto.setUpdatedAt(entity.getUpdatedAt());
+        dto.setResultDate(entity.getResultDate());
+        return dto;
+    }
+
+    public List<TestResultDTO> getAllTestResults() {
+        return testResultRepository.findAll()
+                .stream()
+                .map(this::mapToDTO)
+                .collect(Collectors.toList());
+    }
+
+    private TestResultDTO mapToDTO(TestResult entity) {
+        TestResultDTO dto = new TestResultDTO();
+        dto.setId(entity.getId());
+        dto.setPatientId(entity.getPatient() != null ? entity.getPatient().getId() : null);
+        dto.setTestCategoryId(entity.getTestCategory() != null ? entity.getTestCategory().getId() : null);
+        dto.setDoctorId(entity.getDoctor() != null ? entity.getDoctor().getId() : null);
+        dto.setAppointmentId(entity.getAppointment() != null ? entity.getAppointment().getId() : null);
+        dto.setResultNote(entity.getResultNote());
         dto.setStatus(entity.getStatus() != null ? entity.getStatus().name() : null);
         dto.setResultValue(entity.getResultValue());
         dto.setResultNote(entity.getResultNote());
