@@ -57,6 +57,8 @@ public class SecurityConfig {
               .requestMatchers("/api/appointments/me", "/api/appointments/patient/**").hasRole("PATIENT")
               .requestMatchers(HttpMethod.POST, "/api/appointments").hasAnyRole("PATIENT", "ADMIN")
               .requestMatchers("/api/appointments/anonymous").permitAll()
+              .requestMatchers("/api/appointments/anonymous-online").permitAll()
+              .requestMatchers("/api/appointments/online").permitAll()
               .requestMatchers("/api/admin/**").hasRole("ADMIN")
               .requestMatchers("/api/doctor/**").hasRole("DOCTOR")
               .requestMatchers("/api/patient/**").hasRole("PATIENT")

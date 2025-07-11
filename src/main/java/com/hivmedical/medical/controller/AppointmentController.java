@@ -4,6 +4,7 @@ import com.hivmedical.medical.dto.AppointmentDTO;
 import com.hivmedical.medical.dto.OnlineAppointmentDTO;
 import com.hivmedical.medical.dto.AnonymousOnlineDTO;
 import com.hivmedical.medical.service.AppointmentService;
+import com.hivmedical.medical.entitty.AppointmentStatus;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -37,7 +38,13 @@ public class AppointmentController {
   public ResponseEntity<List<AppointmentDTO>> getAppointments(
       @RequestParam(value = "status", required = false) String status) {
     if (status != null && !status.isEmpty()) {
-      return ResponseEntity.ok(appointmentService.getAppointmentsByStatus(status));
+      AppointmentStatus enumStatus;
+      try {
+        enumStatus = AppointmentStatus.valueOf(status);
+      } catch (IllegalArgumentException e) {
+        throw new IllegalArgumentException("Trạng thái không hợp lệ: " + status);
+      }
+      return ResponseEntity.ok(appointmentService.getAppointmentsByStatus(enumStatus));
     } else {
       return ResponseEntity.ok(appointmentService.getAllAppointments());
     }
@@ -47,7 +54,16 @@ public class AppointmentController {
   @PreAuthorize("hasAnyRole('STAFF', 'ADMIN')")
   public ResponseEntity<AppointmentDTO> updateAppointmentStatus(@PathVariable Long id,
       @RequestBody AppointmentDTO dto) {
-    AppointmentDTO updated = appointmentService.updateAppointmentStatus(id, dto.getStatus());
+    if (dto.getStatus() == null || dto.getStatus().isEmpty()) {
+      throw new IllegalArgumentException("Trạng thái không được để trống");
+    }
+    AppointmentStatus enumStatus;
+    try {
+      enumStatus = AppointmentStatus.valueOf(dto.getStatus());
+    } catch (IllegalArgumentException e) {
+      throw new IllegalArgumentException("Trạng thái không hợp lệ: " + dto.getStatus());
+    }
+    AppointmentDTO updated = appointmentService.updateAppointmentStatus(id, enumStatus);
     return ResponseEntity.ok(updated);
   }
 

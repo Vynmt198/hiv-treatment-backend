@@ -9,6 +9,7 @@ public class OnlineAppointmentDTO {
     private String description;
     private String aliasName;
     private String birthDate;
+    private Long doctorId;
 
     public String getFullName() {
         return fullName;
@@ -72,5 +73,13 @@ public class OnlineAppointmentDTO {
 
     public void setBirthDate(String birthDate) {
         this.birthDate = birthDate;
+    }
+
+    public Long getDoctorId() {
+        return doctorId;
+    }
+
+    public void setDoctorId(Long doctorId) {
+        this.doctorId = doctorId;
     }
 }
