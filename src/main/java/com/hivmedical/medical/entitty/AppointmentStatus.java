@@ -5,5 +5,7 @@ public enum AppointmentStatus {
     CHECKED_IN, // Đã đến
     IN_PROGRESS, // Đang khám
     COMPLETED, // Hoàn tất
-    ABSENT // Vắng
+    ABSENT, // Vắng
+    ONLINE_PENDING,
+    ONLINE_ANONYMOUS_PENDING
 }

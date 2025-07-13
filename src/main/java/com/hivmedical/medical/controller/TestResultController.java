@@ -16,6 +16,18 @@ public class TestResultController {
     @Autowired
     private TestResultService testResultService;
 
+    // Staff/Admin: Lấy danh sách tất cả kết quả xét nghiệm
+    @GetMapping
+    @PreAuthorize("hasAnyRole('STAFF', 'ADMIN')")
+    public ResponseEntity<List<TestResultDTO>> getAllTestResults() {
+        try {
+            List<TestResultDTO> testResults = testResultService.getAllTestResults();
+            return ResponseEntity.ok(testResults);
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body(null);
+        }
+    }
+
     // Staff: Tạo mới yêu cầu xét nghiệm
     @PostMapping
     @PreAuthorize("hasAnyRole('STAFF', 'ADMIN')")
@@ -64,4 +76,5 @@ public class TestResultController {
     public ResponseEntity<TestResultDTO> getTestResult(@PathVariable Long id) {
         return ResponseEntity.ok(testResultService.getTestResultDTO(id));
     }
+
 }
