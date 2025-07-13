@@ -12,6 +12,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
@@ -42,7 +43,7 @@ public class SecurityConfig {
         .csrf(csrf -> csrf.disable())
         .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
         .authorizeHttpRequests(auth -> {
-          logger.info("Setting up authorization rules");
+          logger.info("Setting up authorization rules for ARV treatment system");
           auth
               .requestMatchers("/api/auth/**", "/swagger-ui/**", "/v3/api-docs/**", "/error").permitAll()
               .requestMatchers(HttpMethod.GET, "/api/doctors", "/api/doctors/**", "/api/blogs/**").permitAll()
@@ -62,14 +63,41 @@ public class SecurityConfig {
               .requestMatchers("/api/admin/**").hasRole("ADMIN")
               .requestMatchers("/api/doctor/**").hasRole("DOCTOR")
               .requestMatchers("/api/patient/**").hasRole("PATIENT")
+              // ARV Protocol APIs - Public read access for specific endpoints
+              .requestMatchers(HttpMethod.GET, "/api/arv-protocols/active", "/api/arv-protocols/target-groups",
+                  "/api/arv-protocols/target-group/**", "/api/arv-protocols/search")
+              .permitAll()
+              // ARV Protocol APIs - Full access for ADMIN and DOCTOR
+              .requestMatchers("/api/arv-protocols/**").hasAnyRole("ADMIN", "DOCTOR")
+              // Prescription APIs - Full access for multiple roles
+              .requestMatchers("/api/prescriptions/**").hasAnyRole("PATIENT", "DOCTOR", "STAFF", "ADMIN")
+              // Medication APIs - Public read access for specific endpoints (must come first)
+              .requestMatchers(HttpMethod.GET, "/api/medications/active", "/api/medications/drug-classes",
+                  "/api/medications/drug-class/**", "/api/medications/search", "/api/medications/name/**",
+                  "/api/medications/generic-name/**")
+              .permitAll()
+              // Medication APIs - Full access for ADMIN and DOCTOR (must come after specific
+              // GET endpoints)
+              .requestMatchers("/api/medications/**").hasAnyRole("ADMIN", "DOCTOR")
               .anyRequest().authenticated();
         })
         .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
         .exceptionHandling(exception -> exception
             .accessDeniedHandler((request, response, accessDeniedException) -> {
-              ;
-              logger.error("Access denied to {}: {}", request.getRequestURI(), accessDeniedException.getMessage(),
-                  accessDeniedException);
+              logger.error("=== ACCESS DENIED DEBUG INFO ===");
+              logger.error("Request URI: {}", request.getRequestURI());
+              logger.error("Request Method: {}", request.getMethod());
+              logger.error("Access Denied Exception: {}", accessDeniedException.getMessage());
+
+              if (SecurityContextHolder.getContext().getAuthentication() != null) {
+                logger.error("User: {}", SecurityContextHolder.getContext().getAuthentication().getName());
+                logger.error("User roles: {}", SecurityContextHolder.getContext().getAuthentication().getAuthorities());
+                logger.error("Is authenticated: {}",
+                    SecurityContextHolder.getContext().getAuthentication().isAuthenticated());
+              } else {
+                logger.error("No authentication found in SecurityContext");
+              }
+
               response.setContentType("application/json");
               response.setStatus(HttpServletResponse.SC_FORBIDDEN);
               response.getWriter()
