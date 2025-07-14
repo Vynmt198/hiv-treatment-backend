@@ -348,4 +348,10 @@ public class AppointmentService {
         .map(this::mapToDTO)
         .collect(Collectors.toList());
   }
+
+  public List<AppointmentDTO> getAppointmentsByPatient(Long patientId) {
+    return appointmentRepository.findByUserId(patientId).stream()
+        .map(this::mapToDTO)
+        .collect(Collectors.toList());
+  }
 }
