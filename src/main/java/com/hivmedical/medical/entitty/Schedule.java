@@ -13,6 +13,8 @@ import jakarta.persistence.Table;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import org.hibernate.annotations.Nationalized;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 
 @Entity
 @Table
@@ -41,10 +43,17 @@ public class Schedule {
   @Column(nullable = false)
   private boolean isAvailable;
 
-  @Column( nullable = false)
+  @Enumerated(EnumType.STRING)
+  @Column(nullable = false)
+  private Status status = Status.AVAILABLE;
+
+  @Column
+  private LocalDateTime pendingUntil;
+
+  @Column(nullable = false)
   private LocalDateTime createdAt;
 
-  @Column( nullable = false)
+  @Column(nullable = false)
   private LocalDateTime updatedAt;
 
   @PrePersist
@@ -55,6 +64,7 @@ public class Schedule {
       isAvailable = true;
     }
   }
+
   @PreUpdate
   public void onUpdate() {
     updatedAt = LocalDateTime.now();
@@ -65,7 +75,7 @@ public class Schedule {
 
   public Schedule(Long id, Doctor doctor, LocalDate date, String timeSlots, LocalDateTime startTime,
       LocalDateTime endTime, boolean isAvailable, LocalDateTime createdAt,
-      LocalDateTime updatedAt) {
+      LocalDateTime updatedAt, Status status, LocalDateTime pendingUntil) {
     this.id = id;
     this.doctor = doctor;
     this.date = date;
@@ -75,6 +85,8 @@ public class Schedule {
     this.isAvailable = isAvailable;
     this.createdAt = createdAt;
     this.updatedAt = updatedAt;
+    this.status = status;
+    this.pendingUntil = pendingUntil;
   }
 
   public Long getId() {
@@ -133,6 +145,22 @@ public class Schedule {
     isAvailable = available;
   }
 
+  public Status getStatus() {
+    return status;
+  }
+
+  public void setStatus(Status status) {
+    this.status = status;
+  }
+
+  public LocalDateTime getPendingUntil() {
+    return pendingUntil;
+  }
+
+  public void setPendingUntil(LocalDateTime pendingUntil) {
+    this.pendingUntil = pendingUntil;
+  }
+
   public LocalDateTime getCreatedAt() {
     return createdAt;
   }
@@ -147,5 +175,11 @@ public class Schedule {
 
   public void setUpdatedAt(LocalDateTime updatedAt) {
     this.updatedAt = updatedAt;
+  }
+
+  public enum Status {
+    AVAILABLE,
+    PENDING,
+    BOOKED
   }
 }
