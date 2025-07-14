@@ -148,3 +148,43 @@ VALUES (
 ADD
     birth_date DATE NOT NULL DEFAULT '2000-01-01',
     treatment_start_date DATE NOT NULL DEFAULT '2000-01-01';
+
+    ////////////////////////////////////////////
+    -- Tạo bảng số từ 0 đến 6 (7 ngày)
+WITH Numbers AS (
+  SELECT 0 AS n
+  UNION ALL SELECT 1
+  UNION ALL SELECT 2
+  UNION ALL SELECT 3
+  UNION ALL SELECT 4
+  UNION ALL SELECT 5
+  UNION ALL SELECT 6
+)
+-- Chèn lịch cho tất cả doctor
+INSERT INTO schedule (created_at, date, end_time, is_available, start_time, time_slots, updated_at, doctor_id)
+SELECT
+  GETDATE(), -- created_at
+  DATEADD(DAY, n, CAST(CONVERT(date, GETDATE()) AS datetime)) AS date,
+  DATEADD(MINUTE, 30, DATEADD(HOUR, 9, DATEADD(DAY, n, CAST(CONVERT(date, GETDATE()) AS datetime)))) AS end_time,
+  1, -- is_available
+  DATEADD(HOUR, 9, DATEADD(DAY, n, CAST(CONVERT(date, GETDATE()) AS datetime))) AS start_time,
+  '["09:00-09:30"]', -- time_slots
+  GETDATE(), -- updated_at
+  d.id -- doctor_id
+FROM doctor d
+CROSS JOIN Numbers
+
+UNION ALL
+
+SELECT
+  GETDATE(),
+  DATEADD(DAY, n, CAST(CONVERT(date, GETDATE()) AS datetime)) AS date,
+  DATEADD(MINUTE, 30, DATEADD(HOUR, 10, DATEADD(DAY, n, CAST(CONVERT(date, GETDATE()) AS datetime)))) AS end_time,
+  1,
+  DATEADD(HOUR, 10, DATEADD(DAY, n, CAST(CONVERT(date, GETDATE()) AS datetime))) AS start_time,
+  '["10:00-10:30"]',
+  GETDATE(),
+  d.id
+FROM doctor d
+CROSS JOIN Numbers
+OPTION (MAXRECURSION 100);
