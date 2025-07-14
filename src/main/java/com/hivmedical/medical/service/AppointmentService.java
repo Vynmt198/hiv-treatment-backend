@@ -124,8 +124,8 @@ public class AppointmentService {
         if (!bookedSchedule.isAvailable()) {
           throw new IllegalArgumentException("Khung giờ này đã có người đặt");
         }
-        bookedSchedule.setAvailable(false);
-        scheduleService.markScheduleAsBooked(bookedSchedule.getId());
+        // Giữ slot ở trạng thái PENDING, chờ thanh toán
+        scheduleService.holdScheduleForBooking(bookedSchedule.getId());
       } catch (DateTimeParseException e) {
         throw new IllegalArgumentException("Định dạng ngày giờ không hợp lệ: " + dto.getAppointmentDate());
       }

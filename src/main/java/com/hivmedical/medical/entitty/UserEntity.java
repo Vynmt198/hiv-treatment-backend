@@ -21,7 +21,7 @@ public class UserEntity {
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
-  // @Column(name = "userid")
+  @Column(name = "user_id")
   private Long userId;
 
   @Nationalized
