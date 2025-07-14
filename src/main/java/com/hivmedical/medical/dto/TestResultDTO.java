@@ -18,7 +18,6 @@ public class TestResultDTO {
     private LocalDateTime updatedAt;
     private LocalDateTime resultDate;
 
-    // Getters & Setters
     public Long getId() {
         return id;
     }

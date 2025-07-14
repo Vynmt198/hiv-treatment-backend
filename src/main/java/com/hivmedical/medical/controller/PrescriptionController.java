@@ -100,7 +100,7 @@ public class PrescriptionController {
         return ResponseEntity.ok(updatedPrescription);
     }
 
-    // Cập nhật trạng thái đơn thuốc (PUT method)
+    // Cập nhật trạng thái đơn thuốc (PUT method)/không dùng
     @PutMapping("/{id}/status")
     @PreAuthorize("hasAnyRole('DOCTOR', 'ADMIN')")
     public ResponseEntity<PrescriptionDTO> updatePrescriptionStatusPut(@PathVariable Long id,
