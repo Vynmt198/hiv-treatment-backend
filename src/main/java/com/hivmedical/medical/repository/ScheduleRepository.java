@@ -1,6 +1,7 @@
 package com.hivmedical.medical.repository;
 
 import com.hivmedical.medical.entitty.Schedule;
+import com.hivmedical.medical.entitty.Schedule.Status;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -15,4 +16,8 @@ public interface ScheduleRepository extends JpaRepository<Schedule, Long> {
 
   List<Schedule> findByDateAndStartTimeAndEndTimeAndIsAvailableTrue(LocalDate date, java.time.LocalDateTime startTime,
       java.time.LocalDateTime endTime);
+
+  List<Schedule> findByStatus(Status status);
+
+  List<Schedule> findByStatusAndPendingUntilBefore(Status status, LocalDateTime time);
 }

@@ -175,6 +175,8 @@ public class AuthAPI {
       response.put("token", jwt);
       response.put("role", user.getRole().name());
       response.put("fullName", user.getFullName() != null ? user.getFullName() : user.getUsername());
+      response.put("patientId", user.getUserId());
+      logger.info("UserId for login: {}", user.getUserId());
       return ResponseEntity.ok(response);
     } catch (Exception e) {
       logger.error("Login failed for email {}: {}", request.getEmail(), e.getMessage(), e);
