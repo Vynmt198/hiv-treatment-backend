@@ -54,25 +54,8 @@ public class TestResultService {
     public List<TestResultDTO> getAllTestResults() {
         return testResultRepository.findAll()
                 .stream()
-                .map(this::mapToDTO)
+                .map(this::toDTO)
                 .collect(Collectors.toList());
-    }
-
-    private TestResultDTO mapToDTO(TestResult entity) {
-        TestResultDTO dto = new TestResultDTO();
-        dto.setId(entity.getId());
-        dto.setPatientId(entity.getPatient() != null ? entity.getPatient().getId() : null);
-        dto.setTestCategoryId(entity.getTestCategory() != null ? entity.getTestCategory().getId() : null);
-        dto.setDoctorId(entity.getDoctor() != null ? entity.getDoctor().getId() : null);
-        dto.setAppointmentId(entity.getAppointment() != null ? entity.getAppointment().getId() : null);
-        dto.setResultNote(entity.getResultNote());
-        dto.setStatus(entity.getStatus() != null ? entity.getStatus().name() : null);
-        dto.setResultValue(entity.getResultValue());
-        dto.setResultNote(entity.getResultNote());
-        dto.setCreatedAt(entity.getCreatedAt());
-        dto.setUpdatedAt(entity.getUpdatedAt());
-        dto.setResultDate(entity.getResultDate());
-        return dto;
     }
 
     @Transactional
