@@ -4,6 +4,7 @@ import com.hivmedical.medical.dto.AppointmentDTO;
 import com.hivmedical.medical.dto.OnlineAppointmentDTO;
 import com.hivmedical.medical.dto.AnonymousOnlineDTO;
 import com.hivmedical.medical.service.AppointmentService;
+import com.hivmedical.medical.service.MomoPaymentService;
 import com.hivmedical.medical.entitty.AppointmentStatus;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -13,6 +14,8 @@ import org.springframework.web.bind.annotation.*;
 
 import jakarta.validation.Valid;
 import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
 
 @RestController
 @RequestMapping("/api/appointments")
@@ -21,10 +24,18 @@ public class AppointmentController {
   @Autowired
   private AppointmentService appointmentService;
 
+  @Autowired
+  private MomoPaymentService momoPaymentService;
+
   @PostMapping
   @PreAuthorize("hasAnyRole('PATIENT', 'ADMIN')")
-  public ResponseEntity<AppointmentDTO> createAppointment(@Valid @RequestBody AppointmentDTO appointmentDTO) {
-    return ResponseEntity.ok(appointmentService.createAppointment(appointmentDTO));
+  public ResponseEntity<Map<String, String>> createAppointment(@Valid @RequestBody AppointmentDTO appointmentDTO) {
+    AppointmentDTO appointmentDTO2 = appointmentService.createAppointment(appointmentDTO);
+    String url = momoPaymentService.getPayUrl(appointmentDTO2.getId().toString(), appointmentDTO2.getPrice(),
+        "Thanh Toan Don Hang", "url", "url");
+    Map<String, String> response = new HashMap<>();
+    response.put(appointmentDTO2.toString(), "url :" + url);
+    return ResponseEntity.ok(response);
   }
 
   @GetMapping("/me")

@@ -324,6 +324,7 @@ public class AppointmentService {
     PatientProfile profile = patientProfileRepository.findByAccount(entity.getUser()).orElse(null);
     String fullName = (profile != null) ? profile.getFullName() : null;
     dto.setFullName(fullName);
+    dto.setPrice(entity.getService().getPrice());
     return dto;
   }
 

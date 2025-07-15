@@ -3,7 +3,9 @@ package com.hivmedical.medical.dto;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
+import lombok.ToString;
 
+@ToString
 @Data
 public class AppointmentDTO {
   private Long id;
@@ -29,6 +31,7 @@ public class AppointmentDTO {
   private String specialization;
   private String doctorEmail;
   private String doctorPhone;
+  private String price;
 
   private String phone;
   private String gender;
