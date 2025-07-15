@@ -29,7 +29,13 @@ public class AppointmentController {
 
   @PostMapping
   @PreAuthorize("hasAnyRole('PATIENT', 'ADMIN')")
-  public ResponseEntity<Map<String, String>> createAppointment(@Valid @RequestBody AppointmentDTO appointmentDTO) {
+  public ResponseEntity<Map<String, String>> createAppointment(@Valid @RequestBody AppointmentDTO appointmentDTO,
+      BindingResult result) {
+    if (result.hasErrors()) {
+      Map<String, String> error = new HashMap<>();
+      error.put("error", result.getAllErrors().get(0).getDefaultMessage());
+      return ResponseEntity.badRequest().body(error);
+    }
     AppointmentDTO appointmentDTO2 = appointmentService.createAppointment(appointmentDTO);
     String url = momoPaymentService.getPayUrl(appointmentDTO2.getId().toString(), appointmentDTO2.getPrice(),
         "Thanh Toan Don Hang", "url", "url");

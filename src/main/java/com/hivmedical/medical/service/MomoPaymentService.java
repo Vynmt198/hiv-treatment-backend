@@ -38,9 +38,18 @@ public class MomoPaymentService {
     ResponseEntity<Map> response = restTemplate.postForEntity(momoEndpoint, request, Map.class);
 
     if (response.getStatusCode() == HttpStatus.OK && response.getBody() != null) {
-      return (String) response.getBody().get("payUrl");
+      Object payUrlObj = response.getBody().get("payUrl");
+      if (payUrlObj != null) {
+        return payUrlObj.toString();
+      } else {
+        // Nếu MoMo trả về lỗi, trả về message lỗi rõ ràng
+        Object message = response.getBody().get("message");
+        throw new RuntimeException("MoMo error: " + (message != null ? message.toString() : "Unknown error"));
+      }
     } else {
-      throw new RuntimeException("Failed to create MoMo payment request. Status: " + response.getStatusCode());
+      String errorBody = response.getBody() != null ? response.getBody().toString() : "No response body";
+      throw new RuntimeException(
+          "Failed to create MoMo payment request. Status: " + response.getStatusCode() + ", Body: " + errorBody);
     }
   }
 
@@ -78,12 +87,24 @@ public class MomoPaymentService {
           "&requestId=" + data.get("requestId") +
           "&requestType=" + data.get("requestType");
 
+      System.out.println("[MoMo] rawData for signature: " + rawData);
+
       Mac sha256_HMAC = Mac.getInstance("HmacSHA256");
       SecretKeySpec secretKeySpec = new SecretKeySpec(secretKey.getBytes(), "HmacSHA256");
       sha256_HMAC.init(secretKeySpec);
 
       byte[] hash = sha256_HMAC.doFinal(rawData.getBytes());
-      return Base64.getEncoder().encodeToString(hash);
+      // MoMo yêu cầu signature dạng hex, không phải base64
+      StringBuilder hexString = new StringBuilder();
+      for (byte b : hash) {
+        String hex = Integer.toHexString(0xff & b);
+        if (hex.length() == 1)
+          hexString.append('0');
+        hexString.append(hex);
+      }
+      String signature = hexString.toString();
+      System.out.println("[MoMo] signature: " + signature);
+      return signature;
     } catch (Exception e) {
       throw new RuntimeException("Error generating MoMo signature", e);
     }
