@@ -64,6 +64,7 @@ public class AppointmentService {
     if (dto.getPhone() != null && !dto.getPhone().matches("^[0-9]{9,15}$")) {
       throw new IllegalArgumentException("Số điện thoại không hợp lệ");
     }
+
     // Check duplicate appointment for user at the same time
     String username = SecurityContextHolder.getContext().getAuthentication().getName();
     Account user = accountRepository.findByUsername(username)
