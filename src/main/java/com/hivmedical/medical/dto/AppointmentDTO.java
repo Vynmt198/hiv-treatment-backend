@@ -2,6 +2,7 @@ package com.hivmedical.medical.dto;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
 import lombok.Data;
 import lombok.ToString;
 
@@ -31,6 +32,7 @@ public class AppointmentDTO {
   private String specialization;
   private String doctorEmail;
   private String doctorPhone;
+  @Pattern(regexp = "^\\d+$", message = "Giá tiền phải là số nguyên dương")
   private String price;
 
   private String phone;
@@ -154,6 +156,14 @@ public class AppointmentDTO {
 
   public void setDoctorPhone(String doctorPhone) {
     this.doctorPhone = doctorPhone;
+  }
+
+  public String getPrice() {
+    return price;
+  }
+
+  public void setPrice(String price) {
+    this.price = price;
   }
 
   public String getPhone() {
