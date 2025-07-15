@@ -20,4 +20,6 @@ public interface ScheduleRepository extends JpaRepository<Schedule, Long> {
   List<Schedule> findByStatus(Status status);
 
   List<Schedule> findByStatusAndPendingUntilBefore(Status status, LocalDateTime time);
+
+  List<Schedule> findByDoctorIdAndDateAndIsAvailableTrueAndStatus(Long doctorId, LocalDate date, Status status);
 }

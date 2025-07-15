@@ -4,6 +4,7 @@ import com.hivmedical.medical.service.MomoPaymentService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import java.util.Map;
+import java.util.HashMap;
 
 @RestController
 @RequestMapping("/api/payment")
@@ -19,12 +20,16 @@ public class PaymentController {
       @RequestParam String redirectUrl,
       @RequestParam String ipnUrl) {
 
-    //ipnUrl la de kiem tra trang thai tt
-    //redirectUrl back url nhan payment
+    // ipnUrl la de kiem tra trang thai tt
+    // redirectUrl back url nhan payment
     // thong tin them ve don hjang
-    // amount thif cu ep kieu ve string tu double to string
-    //orderid gan id don hanbg vafo
-    return momoPaymentService.createPaymentRequest(orderId, amount, orderInfo, redirectUrl, ipnUrl);
+    // amount thi cu ep kieu ve string tu double to string
+    // orderid gan id don hanng vao
+    // return momoPaymentService.createPaymentRequest(orderId, amount, orderInfo,
+    // redirectUrl, ipnUrl);
+    String payUrl = momoPaymentService.getPayUrl(orderId, amount, orderInfo, redirectUrl, ipnUrl);
+    Map<String, String> response = new HashMap<>();
+    response.put("payUrl", payUrl);
+    return response;
   }
 }
-
