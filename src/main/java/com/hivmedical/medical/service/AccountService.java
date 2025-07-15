@@ -11,6 +11,8 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.Optional;
 import java.security.SecureRandom;
+import com.hivmedical.medical.entitty.Doctor;
+import com.hivmedical.medical.repository.DoctorRepository;
 
 @Service
 @Transactional
@@ -36,6 +38,9 @@ public class AccountService {
 
     @Autowired
     private EmailService emailService;
+
+    @Autowired
+    private DoctorRepository doctorRepository;
 
     public boolean isEmailExists(String email) {
         return accountRepository.existsByEmail(email);
@@ -266,5 +271,30 @@ public class AccountService {
                 profile.getBirthDate(),
                 profile.getHivStatus(),
                 profile.getTreatmentStartDate());
+    }
+
+    /**
+     * Gán quyền DOCTOR cho account dựa trên doctorId
+     * 
+     * @param doctorId id của doctor (liên kết với account)
+     * @return true nếu thành công, false nếu không tìm thấy doctor/account
+     */
+    public boolean assignDoctorRoleByDoctorId(Long doctorId) {
+        Optional<Doctor> doctorOpt = doctorRepository.findById(doctorId);
+        if (doctorOpt.isEmpty())
+            return false;
+        Doctor doctor = doctorOpt.get();
+        Account account = doctor.getAccount();
+        if (account == null)
+            return false;
+        if (account.getRole() == Role.DOCTOR)
+            return true; // Đã là doctor
+        account.setRole(Role.DOCTOR);
+        accountRepository.save(account);
+        // Tạo DoctorProfile nếu chưa có
+        if (doctorProfileRepository.findByAccount(account).isEmpty()) {
+            createDoctorProfile(account, doctor.getFullName(), doctor.getSpecialization());
+        }
+        return true;
     }
 }
