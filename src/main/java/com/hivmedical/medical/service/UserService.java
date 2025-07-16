@@ -182,4 +182,8 @@ public class UserService {
         profile.getHivStatus(),
         profile.getTreatmentStartDate());
   }
+
+  public void save(UserEntity user) {
+    userRepository.save(user);
+  }
 }
