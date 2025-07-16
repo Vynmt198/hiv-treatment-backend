@@ -1,5 +1,6 @@
 package com.hivmedical.medical.controller;
 
+import com.hivmedical.medical.dto.PatientRegisterByStaffRequest;
 import com.hivmedical.medical.service.AccountService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -39,4 +40,22 @@ public class StaffController {
       return ResponseEntity.badRequest().body("Không tìm thấy account liên kết với doctorId: " + doctorId);
     }
   }
+
+  @PostMapping("/patients")
+  @PreAuthorize("hasRole('STAFF')")
+  public ResponseEntity<?> createPatientByStaff(@RequestBody PatientRegisterByStaffRequest request) {
+    try {
+      boolean result = accountService.createPatientByStaff(request);
+      if (result) {
+        return ResponseEntity.ok("Thêm bệnh nhân thành công");
+      } else {
+        return ResponseEntity.badRequest().body("Thêm bệnh nhân thất bại");
+      }
+    } catch (IllegalArgumentException e) {
+      return ResponseEntity.badRequest().body(e.getMessage());
+    } catch (Exception e) {
+      return ResponseEntity.status(500).body("Lỗi hệ thống: " + e.getMessage());
+    }
+  }
+
 }
