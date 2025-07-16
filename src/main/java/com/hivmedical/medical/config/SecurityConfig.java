@@ -62,6 +62,7 @@ public class SecurityConfig {
               .requestMatchers("/api/appointments/online").permitAll()
               .requestMatchers("/api/payment/momo").permitAll()
               .requestMatchers("/api/admin/**").hasRole("ADMIN")
+              .requestMatchers("/api/admin/register-doctor").hasRole("ADMIN")
               .requestMatchers("/api/doctor/**").hasRole("DOCTOR")
               .requestMatchers("/api/patient/**").hasRole("PATIENT")
               // ARV Protocol APIs - Public read access for specific endpoints

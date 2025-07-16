@@ -1,7 +1,10 @@
 package com.hivmedical.medical.controller;
 
 import com.hivmedical.medical.dto.AppointmentDTO;
+import com.hivmedical.medical.dto.RegisterDoctorRequest;
 import com.hivmedical.medical.service.AppointmentService;
+import com.hivmedical.medical.service.UserService;
+
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -18,6 +21,9 @@ public class AdminController {
   @Autowired
   private AppointmentService appointmentService;
 
+  @Autowired
+  private UserService userService;
+
   @GetMapping("/appointments")
   @PreAuthorize("hasRole('ADMIN')")
   public ResponseEntity<List<AppointmentDTO>> getAllAppointments() {
@@ -31,6 +37,13 @@ public class AdminController {
     AppointmentDTO createdAppointment = appointmentService.createAppointment(dto); // Reuse existing method
     return ResponseEntity.ok(createdAppointment);
   }
+  @PostMapping("/register-doctor")
+  @PreAuthorize("hasRole('ADMIN')")
+  public ResponseEntity<?> registerDoctor(@RequestBody RegisterDoctorRequest request) {
+      userService.registerDoctor(request);
+      return ResponseEntity.ok("Tạo tài khoản và hồ sơ bác sĩ thành công!");
+  }
+ 
 }
 
 
