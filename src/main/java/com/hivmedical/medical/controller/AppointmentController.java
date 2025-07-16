@@ -85,19 +85,33 @@ public class AppointmentController {
   }
 
   @PostMapping("/online")
-  public ResponseEntity<AppointmentDTO> createOnlineAppointment(@Valid @RequestBody OnlineAppointmentDTO dto,
+  public ResponseEntity<Map<String, String>> createOnlineAppointment(@Valid @RequestBody OnlineAppointmentDTO dto,
       BindingResult result) {
     if (result.hasErrors()) {
       throw new IllegalArgumentException(result.getAllErrors().get(0).getDefaultMessage());
     }
     AppointmentDTO resultDto = appointmentService.createOnlineAppointment(dto);
-    return ResponseEntity.ok(resultDto);
+    String url = momoPaymentService.getPayUrl(resultDto.getId().toString(), resultDto.getPrice(),
+        "Thanh Toan Don Hang", "url", "url");
+    Map<String, String> response = new HashMap<>();
+    response.put(resultDto.toString(), "url :" + url);
+    return ResponseEntity.ok(response);
   }
 
   @PostMapping("/anonymous-online")
-  public ResponseEntity<AppointmentDTO> createAnonymousOnlineAppointment(
+  public ResponseEntity<Map<String, String>> createAnonymousOnlineAppointment(
       @RequestBody AnonymousOnlineDTO dto) {
     AppointmentDTO result = appointmentService.createAnonymousOnlineAppointment(dto);
-    return ResponseEntity.ok(result);
+    String url = momoPaymentService.getPayUrl(result.getId().toString(), result.getPrice(),
+        "Thanh Toan Don Hang", "url", "url");
+    Map<String, String> response = new HashMap<>();
+    response.put(result.toString(), "url :" + url);
+    return ResponseEntity.ok(response);
+  }
+
+  @PostMapping("/confirm-payment/{appointmentId}")
+  public ResponseEntity<AppointmentDTO> confirmPayment(@PathVariable Long appointmentId) {
+    AppointmentDTO updated = appointmentService.confirmPayment(appointmentId);
+    return ResponseEntity.ok(updated);
   }
 }

@@ -45,6 +45,8 @@ public class AppointmentDTO {
 
   private String birthDate;
 
+  private String bookingMode;
+
   public AppointmentDTO() {
   }
 
@@ -212,5 +214,13 @@ public class AppointmentDTO {
 
   public void setBirthDate(String birthDate) {
     this.birthDate = birthDate;
+  }
+
+  public String getBookingMode() {
+    return bookingMode;
+  }
+
+  public void setBookingMode(String bookingMode) {
+    this.bookingMode = bookingMode;
   }
 }
