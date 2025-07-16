@@ -39,6 +39,9 @@ public class AppointmentEntity {
   @Column(length = 10)
   private String gender;
 
+  @Column(length = 255, columnDefinition = "NVARCHAR(255)")
+  private String fullName;
+
   @Column(columnDefinition = "NVARCHAR(MAX)")
   private String description;
 
@@ -171,6 +174,14 @@ public class AppointmentEntity {
     this.gender = gender;
   }
 
+  public String getFullName() {
+    return fullName;
+  }
+
+  public void setFullName(String fullName) {
+    this.fullName = fullName;
+  }
+
   public String getDescription() {
     return description;
   }
@@ -179,4 +190,21 @@ public class AppointmentEntity {
     this.description = description;
   }
 
+  public enum BookingMode {
+    NORMAL,
+    ONLINE,
+    ANONYMOUS_ONLINE
+  }
+
+  @Enumerated(EnumType.STRING)
+  @Column(name = "booking_mode", nullable = false, columnDefinition = "NVARCHAR(50) COLLATE Vietnamese_CI_AS")
+  private BookingMode bookingMode = BookingMode.NORMAL;
+
+  public BookingMode getBookingMode() {
+    return bookingMode;
+  }
+
+  public void setBookingMode(BookingMode bookingMode) {
+    this.bookingMode = bookingMode;
+  }
 }

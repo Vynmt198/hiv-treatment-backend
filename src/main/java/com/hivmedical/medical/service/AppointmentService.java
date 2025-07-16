@@ -27,9 +27,14 @@ import com.hivmedical.medical.entitty.PatientProfile;
 import com.hivmedical.medical.repository.PatientProfileRepository;
 import com.hivmedical.medical.repository.ScheduleRepository;
 import com.hivmedical.medical.entitty.AppointmentStatus;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Service
 public class AppointmentService {
+
+  private static final Logger logger = LoggerFactory.getLogger(AppointmentService.class);
 
   @Autowired
   private AppointmentRepository appointmentRepository;
@@ -90,6 +95,8 @@ public class AppointmentService {
     entity.setService(service);
     entity.setDoctor(doctor);
     entity.setAppointmentType(dto.getAppointmentType());
+    entity.setFullName(dto.getFullName());
+    entity.setBookingMode(AppointmentEntity.BookingMode.NORMAL);
 
     if (dto.getAppointmentDate() != null) {
       LocalDateTime parsedAppointmentDate;
@@ -153,6 +160,7 @@ public class AppointmentService {
   public List<AppointmentDTO> getUserAppointments() {
     String username = SecurityContextHolder.getContext().getAuthentication().getName();
     return appointmentRepository.findByUserUsername(username).stream()
+        .filter(a -> a.getStatus() != AppointmentStatus.CANCELLED)
         .map(this::mapToDTO)
         .collect(Collectors.toList());
   }
@@ -160,6 +168,7 @@ public class AppointmentService {
   // New method to get all appointments
   public List<AppointmentDTO> getAllAppointments() {
     return appointmentRepository.findAll().stream()
+        .filter(a -> a.getStatus() != AppointmentStatus.CANCELLED)
         .map(this::mapToDTO)
         .collect(Collectors.toList());
   }
@@ -217,6 +226,7 @@ public class AppointmentService {
           entity.setPhone(dto.getPhone());
           entity.setGender(dto.getGender());
           entity.setDescription(dto.getDescription());
+          entity.setBookingMode(AppointmentEntity.BookingMode.ONLINE);
           AppointmentEntity saved = appointmentRepository.save(entity);
           scheduleService.markScheduleAsBooked(schedule.getId());
           PatientProfile profile = patientProfileRepository.findByAccount(user).orElse(null);
@@ -279,6 +289,7 @@ public class AppointmentService {
           entity.setPhone(dto.getPhone());
           entity.setGender(dto.getGender());
           entity.setDescription(dto.getDescription());
+          entity.setBookingMode(AppointmentEntity.BookingMode.ANONYMOUS_ONLINE);
           AppointmentEntity saved = appointmentRepository.save(entity);
           scheduleService.markScheduleAsBooked(schedule.getId());
           PatientProfile profile = patientProfileRepository.findByAccount(user).orElse(null);
@@ -322,9 +333,15 @@ public class AppointmentService {
     dto.setPhone(entity.getPhone());
     dto.setGender(entity.getGender());
     dto.setDescription(entity.getDescription());
-    PatientProfile profile = patientProfileRepository.findByAccount(entity.getUser()).orElse(null);
-    String fullName = (profile != null) ? profile.getFullName() : null;
-    dto.setFullName(fullName);
+    // Ưu tiên lấy fullName từ entity, nếu null mới lấy từ profile
+    if (entity.getFullName() != null && !entity.getFullName().isEmpty()) {
+      dto.setFullName(entity.getFullName());
+    } else {
+      PatientProfile profile = patientProfileRepository.findByAccount(entity.getUser()).orElse(null);
+      String fullName = (profile != null) ? profile.getFullName() : null;
+      dto.setFullName(fullName);
+    }
+    dto.setBookingMode(entity.getBookingMode() != null ? entity.getBookingMode().name() : null);
     dto.setPrice(entity.getService().getPrice());
     return dto;
   }
@@ -355,5 +372,44 @@ public class AppointmentService {
     return appointmentRepository.findByUserId(patientId).stream()
         .map(this::mapToDTO)
         .collect(Collectors.toList());
+  }
+
+  @Transactional
+  public AppointmentDTO confirmPayment(Long appointmentId) {
+    AppointmentEntity appointment = appointmentRepository.findById(appointmentId)
+        .orElseThrow(() -> new IllegalArgumentException("Appointment not found"));
+    switch (appointment.getBookingMode()) {
+      case NORMAL:
+        appointment.setStatus(AppointmentStatus.CHECKED_IN); // hoặc IN_PROGRESS nếu muốn
+        break;
+      case ONLINE:
+        appointment.setStatus(AppointmentStatus.IN_PROGRESS); // hoặc thêm ONLINE_PAID nếu muốn
+        break;
+      case ANONYMOUS_ONLINE:
+        appointment.setStatus(AppointmentStatus.IN_PROGRESS); // hoặc thêm ONLINE_ANONYMOUS_PAID nếu muốn
+        break;
+    }
+    appointment.setUpdatedAt(LocalDateTime.now());
+    appointmentRepository.save(appointment);
+    // Nếu cần, cập nhật schedule sang BOOKED (nếu có liên kết)
+    // scheduleService.confirmScheduleBooking(appointment.getScheduleId());
+    return mapToDTO(appointment);
+  }
+
+  @Scheduled(fixedRate = 600000) // mỗi 10 phút
+  public void cleanUpUnpaidAppointments() {
+    LocalDateTime threshold = LocalDateTime.now().minusMinutes(15);
+    List<AppointmentEntity> staleAppointments = appointmentRepository.findByStatusInAndCreatedAtBefore(
+        List.of(AppointmentStatus.PENDING, AppointmentStatus.ONLINE_PENDING,
+            AppointmentStatus.ONLINE_ANONYMOUS_PENDING),
+        threshold);
+    for (AppointmentEntity appointment : staleAppointments) {
+      appointment.setStatus(AppointmentStatus.CANCELLED);
+      appointment.setUpdatedAt(LocalDateTime.now());
+    }
+    appointmentRepository.saveAll(staleAppointments);
+    if (!staleAppointments.isEmpty()) {
+      logger.info("Auto-cancelled {} unpaid appointments (older than 15 minutes)", staleAppointments.size());
+    }
   }
 }
