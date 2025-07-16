@@ -13,6 +13,8 @@ import java.util.Optional;
 import java.security.SecureRandom;
 import com.hivmedical.medical.entitty.Doctor;
 import com.hivmedical.medical.repository.DoctorRepository;
+import com.hivmedical.medical.entitty.UserEntity;
+import com.hivmedical.medical.repository.UserRepositoty;
 
 @Service
 @Transactional
@@ -41,6 +43,12 @@ public class AccountService {
 
     @Autowired
     private DoctorRepository doctorRepository;
+
+    @Autowired
+    private UserRepositoty userRepository;
+
+    @Autowired
+    private UserService userService;
 
     public boolean isEmailExists(String email) {
         return accountRepository.existsByEmail(email);
@@ -296,5 +304,74 @@ public class AccountService {
             createDoctorProfile(account, doctor.getFullName(), doctor.getSpecialization());
         }
         return true;
+    }
+
+    /**
+     * Staff thêm mới bệnh nhân: tạo account (nếu chưa có) và profile, đồng bộ thông
+     * tin
+     */
+    public boolean createPatientByStaff(com.hivmedical.medical.dto.PatientRegisterByStaffRequest request) {
+        // Kiểm tra account đã tồn tại qua email hoặc username (dùng email làm username
+        // nếu chưa có)
+        Optional<Account> existingAccount = accountRepository.findByEmail(request.getEmail());
+        Account account;
+        if (existingAccount.isPresent()) {
+            account = existingAccount.get();
+            // Nếu đã có profile bệnh nhân, không cho phép tạo trùng
+            if (patientProfileRepository.findByAccount(account).isPresent()) {
+                throw new IllegalArgumentException("Bệnh nhân đã tồn tại với email này!");
+            }
+            // Không gửi lại mật khẩu nếu account đã tồn tại
+        } else {
+            // Tạo account mới
+            String username = request.getEmail();
+            String password = generateRandomPassword();
+            account = Account.builder()
+                    .username(username)
+                    .email(request.getEmail())
+                    .passwordHash(passwordEncoder.encode(password))
+                    .role(Role.PATIENT)
+                    .enabled(true)
+                    .registrationDate(LocalDateTime.now())
+                    .createdAt(LocalDateTime.now())
+                    .updatedAt(LocalDateTime.now())
+                    .build();
+            accountRepository.save(account);
+            // Gửi email thông báo tài khoản cho bệnh nhân
+            emailService.sendAccountInfo(request.getEmail(), request.getFullName(), username, password);
+        }
+        // Sau khi accountRepository.save(account);
+        UserEntity user = new UserEntity();
+        user.setFullName(request.getFullName());
+        user.setEmail(request.getEmail());
+        user.setPasswordHash(account.getPasswordHash());
+        user.setUsername(request.getEmail());
+        user.setRole(Role.PATIENT);
+        user.setEnabled(true);
+        userService.save(user); // hoặc userRepository.save(user);
+        // Tạo profile bệnh nhân
+        PatientProfile profile = PatientProfile.builder()
+                .account(account)
+                .fullName(request.getFullName())
+                .gender(request.getGender())
+                .phone(request.getPhoneNumber())
+                .address(request.getAddress())
+                .birthDate(java.time.LocalDate.parse(request.getDateOfBirth()))
+                .treatmentStartDate(java.time.LocalDate.now()) // hoặc cho phép nhập nếu cần
+                .createdAt(LocalDateTime.now())
+                .updatedAt(LocalDateTime.now())
+                .build();
+        patientProfileRepository.save(profile);
+        return true;
+    }
+
+    private String generateRandomPassword() {
+        String chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+        SecureRandom random = new SecureRandom();
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < 8; i++) {
+            sb.append(chars.charAt(random.nextInt(chars.length())));
+        }
+        return sb.toString();
     }
 }

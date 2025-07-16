@@ -7,5 +7,6 @@ public enum AppointmentStatus {
     COMPLETED, // Hoàn tất
     ABSENT, // Vắng
     ONLINE_PENDING,
-    ONLINE_ANONYMOUS_PENDING
+    ONLINE_ANONYMOUS_PENDING,
+    CANCELLED // Hủy lịch
 }

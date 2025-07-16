@@ -193,7 +193,11 @@ public class UserService {
         profile.getBirthDate(),
         profile.getHivStatus(),
         profile.getTreatmentStartDate());
-  } 
+  }
+
+  public void save(UserEntity user) {
+    userRepository.save(user);
+  }
   
   public void registerDoctor(RegisterDoctorRequest request) {
     if (!request.getPassword().equals(request.getConfirmPassword())) {
@@ -237,5 +241,4 @@ public class UserService {
     doctor.setCreatedAt(LocalDateTime.now());
     doctor.setUpdatedAt(LocalDateTime.now());
     doctorRepository.save(doctor);
-}
 }
