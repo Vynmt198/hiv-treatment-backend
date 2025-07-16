@@ -6,6 +6,7 @@ import com.hivmedical.medical.dto.AnonymousOnlineDTO;
 import com.hivmedical.medical.service.AppointmentService;
 import com.hivmedical.medical.service.MomoPaymentService;
 import com.hivmedical.medical.entitty.AppointmentStatus;
+import com.hivmedical.medical.entitty.ServiceEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -90,6 +91,20 @@ public class AppointmentController {
     if (result.hasErrors()) {
       throw new IllegalArgumentException(result.getAllErrors().get(0).getDefaultMessage());
     }
+    if (dto.getServiceId() == null) {
+      throw new IllegalArgumentException("Cần chọn dịch vụ");
+    }
+    // Kiểm tra service phải là ONLINE
+    ServiceEntity service = appointmentService.getServiceById(dto.getServiceId());
+    if (!"ONLINE".equalsIgnoreCase(service.getType())) {
+      throw new IllegalArgumentException("Chỉ được chọn dịch vụ online cho lịch hẹn online!");
+    }
+    if (dto.getDoctorId() == null) {
+      throw new IllegalArgumentException("Cần chọn bác sĩ");
+    }
+    if (dto.getAppointmentDate() == null || dto.getAppointmentDate().isEmpty()) {
+      throw new IllegalArgumentException("Cần chọn thời gian lịch hẹn");
+    }
     AppointmentDTO resultDto = appointmentService.createOnlineAppointment(dto);
     String url = momoPaymentService.getPayUrl(resultDto.getId().toString(), resultDto.getPrice(),
         "Thanh Toan Don Hang", "url", "url");
@@ -101,6 +116,20 @@ public class AppointmentController {
   @PostMapping("/anonymous-online")
   public ResponseEntity<Map<String, String>> createAnonymousOnlineAppointment(
       @RequestBody AnonymousOnlineDTO dto) {
+    if (dto.getServiceId() == null) {
+      throw new IllegalArgumentException("Cần chọn dịch vụ");
+    }
+    // Kiểm tra service phải là ONLINE
+    ServiceEntity service = appointmentService.getServiceById(dto.getServiceId());
+    if (!"ONLINE".equalsIgnoreCase(service.getType())) {
+      throw new IllegalArgumentException("Chỉ được chọn dịch vụ online cho lịch hẹn online!");
+    }
+    if (dto.getDoctorId() == null) {
+      throw new IllegalArgumentException("Cần chọn bác sĩ");
+    }
+    if (dto.getAppointmentDate() == null || dto.getAppointmentDate().isEmpty()) {
+      throw new IllegalArgumentException("Cần chọn thời gian lịch hẹn");
+    }
     AppointmentDTO result = appointmentService.createAnonymousOnlineAppointment(dto);
     String url = momoPaymentService.getPayUrl(result.getId().toString(), result.getPrice(),
         "Thanh Toan Don Hang", "url", "url");

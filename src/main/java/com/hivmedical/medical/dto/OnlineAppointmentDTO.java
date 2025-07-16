@@ -10,6 +10,8 @@ public class OnlineAppointmentDTO {
     private String aliasName;
     private String birthDate;
     private Long doctorId;
+    private Long serviceId;
+    private String appointmentDate; // ISO 8601 format (e.g., "2025-07-01T10:00:00")
 
     public String getFullName() {
         return fullName;
@@ -81,5 +83,21 @@ public class OnlineAppointmentDTO {
 
     public void setDoctorId(Long doctorId) {
         this.doctorId = doctorId;
+    }
+
+    public Long getServiceId() {
+        return serviceId;
+    }
+
+    public void setServiceId(Long serviceId) {
+        this.serviceId = serviceId;
+    }
+
+    public String getAppointmentDate() {
+        return appointmentDate;
+    }
+
+    public void setAppointmentDate(String appointmentDate) {
+        this.appointmentDate = appointmentDate;
     }
 }

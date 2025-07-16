@@ -198,14 +198,14 @@ public class UserService {
   public void save(UserEntity user) {
     userRepository.save(user);
   }
-  
+
   public void registerDoctor(RegisterDoctorRequest request) {
     if (!request.getPassword().equals(request.getConfirmPassword())) {
-        throw new IllegalArgumentException("Mật khẩu xác nhận không khớp");
+      throw new IllegalArgumentException("Mật khẩu xác nhận không khớp");
     }
     if (userRepository.findByEmail(request.getEmail()).isPresent() ||
         accountRepository.findByEmail(request.getEmail()).isPresent()) {
-        throw new IllegalArgumentException("Email đã tồn tại!");
+      throw new IllegalArgumentException("Email đã tồn tại!");
     }
 
     // 1. Tạo tài khoản ở bảng users (UserEntity)
@@ -241,4 +241,5 @@ public class UserService {
     doctor.setCreatedAt(LocalDateTime.now());
     doctor.setUpdatedAt(LocalDateTime.now());
     doctorRepository.save(doctor);
+  }
 }

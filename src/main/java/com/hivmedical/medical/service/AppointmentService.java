@@ -185,68 +185,80 @@ public class AppointmentService {
     if (dto.getPhone() != null && !dto.getPhone().matches("^[0-9]{9,15}$")) {
       throw new IllegalArgumentException("Số điện thoại không hợp lệ");
     }
-    // Check duplicate online appointment for email at the same time
-    List<AppointmentEntity> existing = appointmentRepository.findByUserEmail(dto.getEmail());
-    if (existing.stream().anyMatch(
-        a -> a.getAppointmentDate() != null && a.getAppointmentDate().toLocalDate().toString().equals(dto.getDate())
-            && !a.getStatus().equals("CANCELLED"))) {
-      throw new IllegalArgumentException("Bạn đã có lịch online vào ngày này");
+    if (dto.getServiceId() == null) {
+      throw new IllegalArgumentException("Cần chọn dịch vụ");
     }
-    // Tìm bác sĩ chuyên khoa Chuyên khoa HIV/AIDS còn slot trống vào ngày
-    // dto.getDate()
-    // Ưu tiên slot đầu tiên còn trống
-    LocalDate date = LocalDate.parse(dto.getDate());
-    List<Doctor> doctors = doctorRepository.findBySpecializationContainingIgnoreCase("Chuyên khoa HIV/AIDS");
-    for (Doctor doctor : doctors) {
-      List<Schedule> schedules = scheduleService.getAvailableSchedules(doctor.getId(), date);
-      for (Schedule schedule : schedules) {
-        if (schedule.isAvailable()) {
-          // Tạo user nếu chưa có
-          Account user = accountRepository.findByEmail(dto.getEmail()).orElseGet(() -> {
-            Account newUser = new Account();
-            newUser.setEmail(dto.getEmail());
-            newUser.setUsername(dto.getEmail());
-            newUser.setPasswordHash("");
-            newUser.setRole(com.hivmedical.medical.entitty.Role.PATIENT);
-            newUser.setEnabled(true);
-            return accountRepository.save(newUser);
-          });
-          // Tạo appointment
-          AppointmentEntity entity = new AppointmentEntity();
-          entity.setUser(user);
-          ServiceEntity service = serviceRepository.findByName("Tư vấn online HIV")
-              .orElseThrow(() -> new RuntimeException("Service not found"));
-          entity.setService(service);
-          entity.setDoctor(doctor);
-          entity.setAppointmentType("FIRST_VISIT");
-          entity.setAppointmentDate(schedule.getStartTime());
-          entity.setStatus(AppointmentStatus.ONLINE_PENDING);
-          entity.setCreatedAt(LocalDateTime.now());
-          entity.setUpdatedAt(LocalDateTime.now());
-          entity.setPhone(dto.getPhone());
-          entity.setGender(dto.getGender());
-          entity.setDescription(dto.getDescription());
-          entity.setBookingMode(AppointmentEntity.BookingMode.ONLINE);
-          AppointmentEntity saved = appointmentRepository.save(entity);
-          scheduleService.markScheduleAsBooked(schedule.getId());
-          PatientProfile profile = patientProfileRepository.findByAccount(user).orElse(null);
-          if (profile == null) {
-            profile = new PatientProfile();
-            profile.setAccount(user);
-            profile.setFullName(dto.getFullName() != null ? dto.getFullName() : dto.getAliasName());
-            if (dto.getBirthDate() != null && !dto.getBirthDate().isEmpty()) {
-              profile.setBirthDate(LocalDate.parse(dto.getBirthDate()));
-            } else {
-              profile.setBirthDate(LocalDate.now());
-            }
-            profile.setTreatmentStartDate(LocalDate.now());
-            patientProfileRepository.save(profile);
-          }
-          return mapToDTO(saved);
-        }
+    if (dto.getDoctorId() == null) {
+      throw new IllegalArgumentException("Cần chọn bác sĩ");
+    }
+    if (dto.getAppointmentDate() == null || dto.getAppointmentDate().isEmpty()) {
+      throw new IllegalArgumentException("Cần chọn thời gian lịch hẹn");
+    }
+    // Kiểm tra slot
+    ServiceEntity service = serviceRepository.findById(dto.getServiceId())
+        .orElseThrow(() -> new RuntimeException("Service not found"));
+    Doctor doctor = doctorRepository.findById(dto.getDoctorId())
+        .orElseThrow(() -> new IllegalArgumentException("Bác sĩ không tồn tại"));
+    LocalDateTime parsedAppointmentDate;
+    try {
+      parsedAppointmentDate = LocalDateTime.parse(dto.getAppointmentDate(), DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+    } catch (DateTimeParseException e) {
+      throw new IllegalArgumentException("Định dạng ngày giờ không hợp lệ: " + dto.getAppointmentDate());
+    }
+    List<Schedule> availableSchedules = scheduleService.getAvailableSchedules(dto.getDoctorId(),
+        parsedAppointmentDate.toLocalDate());
+    boolean isAvailable = availableSchedules.stream()
+        .anyMatch(schedule -> schedule.getStartTime().equals(parsedAppointmentDate));
+    if (!isAvailable) {
+      throw new IllegalArgumentException("Khung giờ này không còn trống");
+    }
+    Schedule bookedSchedule = availableSchedules.stream()
+        .filter(schedule -> schedule.getStartTime().equals(parsedAppointmentDate))
+        .findFirst()
+        .orElseThrow(() -> new IllegalArgumentException("Khung giờ không hợp lệ"));
+    if (!bookedSchedule.isAvailable()) {
+      throw new IllegalArgumentException("Khung giờ này đã có người đặt");
+    }
+    // Tạo user nếu chưa có
+    Account user = accountRepository.findByEmail(dto.getEmail()).orElseGet(() -> {
+      Account newUser = new Account();
+      newUser.setEmail(dto.getEmail());
+      newUser.setUsername(dto.getEmail());
+      newUser.setPasswordHash("");
+      newUser.setRole(com.hivmedical.medical.entitty.Role.PATIENT);
+      newUser.setEnabled(true);
+      return accountRepository.save(newUser);
+    });
+    // Tạo appointment
+    AppointmentEntity entity = new AppointmentEntity();
+    entity.setUser(user);
+    entity.setService(service);
+    entity.setDoctor(doctor);
+    entity.setAppointmentType("FIRST_VISIT");
+    entity.setAppointmentDate(parsedAppointmentDate);
+    entity.setStatus(AppointmentStatus.ONLINE_PENDING);
+    entity.setCreatedAt(LocalDateTime.now());
+    entity.setUpdatedAt(LocalDateTime.now());
+    entity.setPhone(dto.getPhone());
+    entity.setGender(dto.getGender());
+    entity.setDescription(dto.getDescription());
+    entity.setBookingMode(AppointmentEntity.BookingMode.ONLINE);
+    AppointmentEntity saved = appointmentRepository.save(entity);
+    scheduleService.markScheduleAsBooked(bookedSchedule.getId());
+    PatientProfile profile = patientProfileRepository.findByAccount(user).orElse(null);
+    if (profile == null) {
+      profile = new PatientProfile();
+      profile.setAccount(user);
+      profile.setFullName(dto.getFullName() != null ? dto.getFullName() : dto.getAliasName());
+      if (dto.getBirthDate() != null && !dto.getBirthDate().isEmpty()) {
+        profile.setBirthDate(LocalDate.parse(dto.getBirthDate()));
+      } else {
+        profile.setBirthDate(LocalDate.now());
       }
+      profile.setTreatmentStartDate(LocalDate.now());
+      patientProfileRepository.save(profile);
     }
-    throw new IllegalArgumentException("Không còn slot trống cho ngày đã chọn");
+    return mapToDTO(saved);
   }
 
   @Transactional
@@ -258,58 +270,77 @@ public class AppointmentService {
     if (dto.getPhone() != null && !dto.getPhone().matches("^[0-9]{9,15}$")) {
       throw new IllegalArgumentException("Số điện thoại không hợp lệ");
     }
-    // Tìm bác sĩ chuyên khoa Chuyên khoa HIV/AIDS còn slot trống (ưu tiên slot đầu
-    // tiên)
-    LocalDate date = dto.getDate();
-    List<Doctor> doctors = doctorRepository.findBySpecializationContainingIgnoreCase("Chuyên khoa HIV/AIDS");
-    for (Doctor doctor : doctors) {
-      List<Schedule> schedules = scheduleService.getAvailableSchedules(doctor.getId(), date);
-      for (Schedule schedule : schedules) {
-        if (schedule.isAvailable()) {
-          // Tạo user ẩn danh tạm thời
-          Account user = new Account();
-          user.setEmail("anonymous_" + System.currentTimeMillis() + "@anonymous.com");
-          user.setUsername("anonymous_" + System.currentTimeMillis());
-          user.setPasswordHash("");
-          user.setRole(com.hivmedical.medical.entitty.Role.PATIENT);
-          user.setEnabled(true);
-          user = accountRepository.save(user);
-          // Tạo appointment
-          AppointmentEntity entity = new AppointmentEntity();
-          entity.setUser(user);
-          ServiceEntity service = serviceRepository.findByName("Tư vấn online HIV")
-              .orElseThrow(() -> new RuntimeException("Service not found"));
-          entity.setService(service);
-          entity.setDoctor(doctor);
-          entity.setAppointmentType("FIRST_VISIT");
-          entity.setAppointmentDate(schedule.getStartTime());
-          entity.setStatus(AppointmentStatus.ONLINE_ANONYMOUS_PENDING);
-          entity.setCreatedAt(LocalDateTime.now());
-          entity.setUpdatedAt(LocalDateTime.now());
-          entity.setPhone(dto.getPhone());
-          entity.setGender(dto.getGender());
-          entity.setDescription(dto.getDescription());
-          entity.setBookingMode(AppointmentEntity.BookingMode.ANONYMOUS_ONLINE);
-          AppointmentEntity saved = appointmentRepository.save(entity);
-          scheduleService.markScheduleAsBooked(schedule.getId());
-          PatientProfile profile = patientProfileRepository.findByAccount(user).orElse(null);
-          if (profile == null) {
-            profile = new PatientProfile();
-            profile.setAccount(user);
-            profile.setFullName(dto.getAliasName());
-            if (dto.getBirthDate() != null && !dto.getBirthDate().isEmpty()) {
-              profile.setBirthDate(LocalDate.parse(dto.getBirthDate()));
-            } else {
-              profile.setBirthDate(LocalDate.now());
-            }
-            profile.setTreatmentStartDate(LocalDate.now());
-            patientProfileRepository.save(profile);
-          }
-          return mapToDTO(saved);
-        }
-      }
+    if (dto.getServiceId() == null) {
+      throw new IllegalArgumentException("Cần chọn dịch vụ");
     }
-    throw new IllegalArgumentException("Không còn slot trống cho ngày đã chọn");
+    if (dto.getDoctorId() == null) {
+      throw new IllegalArgumentException("Cần chọn bác sĩ");
+    }
+    if (dto.getAppointmentDate() == null || dto.getAppointmentDate().isEmpty()) {
+      throw new IllegalArgumentException("Cần chọn thời gian lịch hẹn");
+    }
+    ServiceEntity service = serviceRepository.findById(dto.getServiceId())
+        .orElseThrow(() -> new RuntimeException("Service not found"));
+    Doctor doctor = doctorRepository.findById(dto.getDoctorId())
+        .orElseThrow(() -> new IllegalArgumentException("Bác sĩ không tồn tại"));
+    LocalDateTime parsedAppointmentDate;
+    try {
+      parsedAppointmentDate = LocalDateTime.parse(dto.getAppointmentDate(), DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+    } catch (DateTimeParseException e) {
+      throw new IllegalArgumentException("Định dạng ngày giờ không hợp lệ: " + dto.getAppointmentDate());
+    }
+    List<Schedule> availableSchedules = scheduleService.getAvailableSchedules(dto.getDoctorId(),
+        parsedAppointmentDate.toLocalDate());
+    boolean isAvailable = availableSchedules.stream()
+        .anyMatch(schedule -> schedule.getStartTime().equals(parsedAppointmentDate));
+    if (!isAvailable) {
+      throw new IllegalArgumentException("Khung giờ này không còn trống");
+    }
+    Schedule bookedSchedule = availableSchedules.stream()
+        .filter(schedule -> schedule.getStartTime().equals(parsedAppointmentDate))
+        .findFirst()
+        .orElseThrow(() -> new IllegalArgumentException("Khung giờ không hợp lệ"));
+    if (!bookedSchedule.isAvailable()) {
+      throw new IllegalArgumentException("Khung giờ này đã có người đặt");
+    }
+    // Tạo user ẩn danh tạm thời
+    Account user = new Account();
+    user.setEmail("anonymous_" + System.currentTimeMillis() + "@anonymous.com");
+    user.setUsername("anonymous_" + System.currentTimeMillis());
+    user.setPasswordHash("");
+    user.setRole(com.hivmedical.medical.entitty.Role.PATIENT);
+    user.setEnabled(true);
+    user = accountRepository.save(user);
+    // Tạo appointment
+    AppointmentEntity entity = new AppointmentEntity();
+    entity.setUser(user);
+    entity.setService(service);
+    entity.setDoctor(doctor);
+    entity.setAppointmentType("FIRST_VISIT");
+    entity.setAppointmentDate(parsedAppointmentDate);
+    entity.setStatus(AppointmentStatus.ONLINE_ANONYMOUS_PENDING);
+    entity.setCreatedAt(LocalDateTime.now());
+    entity.setUpdatedAt(LocalDateTime.now());
+    entity.setPhone(dto.getPhone());
+    entity.setGender(dto.getGender());
+    entity.setDescription(dto.getDescription());
+    entity.setBookingMode(AppointmentEntity.BookingMode.ANONYMOUS_ONLINE);
+    AppointmentEntity saved = appointmentRepository.save(entity);
+    scheduleService.markScheduleAsBooked(bookedSchedule.getId());
+    PatientProfile profile = patientProfileRepository.findByAccount(user).orElse(null);
+    if (profile == null) {
+      profile = new PatientProfile();
+      profile.setAccount(user);
+      profile.setFullName(dto.getAliasName());
+      if (dto.getBirthDate() != null && !dto.getBirthDate().isEmpty()) {
+        profile.setBirthDate(LocalDate.parse(dto.getBirthDate()));
+      } else {
+        profile.setBirthDate(LocalDate.now());
+      }
+      profile.setTreatmentStartDate(LocalDate.now());
+      patientProfileRepository.save(profile);
+    }
+    return mapToDTO(saved);
   }
 
   private AppointmentDTO mapToDTO(AppointmentEntity entity) {
@@ -394,6 +425,11 @@ public class AppointmentService {
     // Nếu cần, cập nhật schedule sang BOOKED (nếu có liên kết)
     // scheduleService.confirmScheduleBooking(appointment.getScheduleId());
     return mapToDTO(appointment);
+  }
+
+  public ServiceEntity getServiceById(Long id) {
+    return serviceRepository.findById(id)
+        .orElseThrow(() -> new IllegalArgumentException("Service not found"));
   }
 
   @Scheduled(fixedRate = 600000) // mỗi 10 phút
