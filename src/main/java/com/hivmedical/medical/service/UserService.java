@@ -1,6 +1,7 @@
 package com.hivmedical.medical.service;
 
 import com.hivmedical.medical.dto.PatientProfileDTO;
+import com.hivmedical.medical.dto.RegisterDoctorRequest;
 import com.hivmedical.medical.entitty.UserEntity;
 import com.hivmedical.medical.entitty.VerificationToken;
 import com.hivmedical.medical.repository.UserRepositoty;
@@ -10,6 +11,11 @@ import com.hivmedical.medical.repository.PatientProfileRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+import com.hivmedical.medical.entitty.Role;
+import com.hivmedical.medical.entitty.Doctor;
+import com.hivmedical.medical.repository.DoctorRepository;
+import com.hivmedical.medical.entitty.Account;
+import com.hivmedical.medical.repository.AccountRepository;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
@@ -24,6 +30,9 @@ public class UserService {
   private UserRepositoty userRepository; // Sửa chính tả từ userRepositoty
 
   @Autowired
+  private AccountRepository accountRepository;
+
+  @Autowired
   private VerificationTokenRepository tokenRepository;
 
   @Autowired
@@ -34,6 +43,9 @@ public class UserService {
 
   @Autowired
   private PatientProfileRepository patientProfileRepository;
+
+  @Autowired
+  private DoctorRepository doctorRepository;
 
   public boolean isEmailExists(String email) {
     return userRepository.existsByEmail(email);
@@ -186,4 +198,47 @@ public class UserService {
   public void save(UserEntity user) {
     userRepository.save(user);
   }
+  
+  public void registerDoctor(RegisterDoctorRequest request) {
+    if (!request.getPassword().equals(request.getConfirmPassword())) {
+        throw new IllegalArgumentException("Mật khẩu xác nhận không khớp");
+    }
+    if (userRepository.findByEmail(request.getEmail()).isPresent() ||
+        accountRepository.findByEmail(request.getEmail()).isPresent()) {
+        throw new IllegalArgumentException("Email đã tồn tại!");
+    }
+
+    // 1. Tạo tài khoản ở bảng users (UserEntity)
+    UserEntity user = new UserEntity();
+    user.setEmail(request.getEmail());
+    user.setUsername(request.getEmail());
+    user.setFullName(request.getFullName());
+    user.setPasswordHash(passwordEncoder.encode(request.getPassword()));
+    user.setRole(Role.DOCTOR);
+    user.setEnabled(true);
+    userRepository.save(user);
+
+    // 2. Tạo tài khoản ở bảng accounts (Account)
+    Account account = new Account();
+    account.setEmail(request.getEmail());
+    account.setUsername(request.getEmail());
+    account.setPasswordHash(passwordEncoder.encode(request.getPassword()));
+    account.setRole(Role.DOCTOR);
+    account.setEnabled(true);
+    account.setCreatedAt(LocalDateTime.now());
+    account.setUpdatedAt(LocalDateTime.now());
+    accountRepository.save(account);
+
+    // 3. Tạo hồ sơ doctor và liên kết với account vừa tạo
+    Doctor doctor = new Doctor();
+    doctor.setAccount(account); // Doctor liên kết với Account
+    doctor.setFullName(request.getFullName());
+    doctor.setQualification(request.getQualification());
+    doctor.setSpecialization(request.getSpecialization());
+    doctor.setPhoneNumber(request.getPhoneNumber());
+    doctor.setImageUrl(request.getImageUrl());
+    doctor.setWorkingSchedule(request.getWorkingSchedule());
+    doctor.setCreatedAt(LocalDateTime.now());
+    doctor.setUpdatedAt(LocalDateTime.now());
+    doctorRepository.save(doctor);
 }
