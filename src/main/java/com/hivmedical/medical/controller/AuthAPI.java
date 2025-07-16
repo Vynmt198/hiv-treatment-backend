@@ -14,6 +14,7 @@ import com.hivmedical.medical.entitty.UserEntity;
 import com.hivmedical.medical.repository.UserRepositoty;
 import com.hivmedical.medical.service.EmailService;
 import com.hivmedical.medical.service.UserService;
+import com.hivmedical.medical.service.AccountService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,6 +46,8 @@ public class AuthAPI {
   private UserRepositoty userRepository;
   @Autowired
   private EmailService emailService;
+  @Autowired
+  private AccountService accountService;
 
   @Value("${jwt.secret}")
   private String jwtSecret;
@@ -116,6 +119,10 @@ public class AuthAPI {
         }
         user.setEnabled(true);
         userRepository.save(user);
+        // Tạo đồng bộ account nếu chưa có
+        if (!accountService.isEmailExists(user.getEmail())) {
+          accountService.createAccount(user.getEmail(), user.getEmail(), user.getPasswordHash(), user.getRole());
+        }
         response.put("success", true);
         response.put("message", "Đăng ký thành công! Bạn đã có thể đăng nhập.");
         return ResponseEntity.ok(response);
