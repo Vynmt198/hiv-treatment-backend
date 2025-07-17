@@ -12,7 +12,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
 import org.springframework.security.access.prepost.PreAuthorize;
+
 
 @RestController
 @RequestMapping("/api/doctors")
@@ -25,7 +27,6 @@ public class DoctorController {
     this.doctorService = doctorService;
   }
 
-
   // Read (danh sách với tìm kiếm và phân trang)
   @GetMapping
   public ResponseEntity<Page<DoctorDTO>> getDoctors(
@@ -35,7 +36,6 @@ public class DoctorController {
     return ResponseEntity.ok(doctorService.getDoctors(search, searchBy, pageable));
   }
   // Update
-  
   @PutMapping("/{id}")
   @PreAuthorize("hasRole('ADMIN')")
   public ResponseEntity<DoctorDTO> updateDoctor(@PathVariable Long id, @RequestBody DoctorDTO dto) {

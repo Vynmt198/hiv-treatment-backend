@@ -174,6 +174,7 @@ public class UserService {
   }
 
   private PatientProfileDTO mapToProfileDTO(UserEntity user) {
+
     // Nếu UserEntity không có id, có thể truyền null hoặc lấy từ nơi khác nếu có
     return new PatientProfileDTO(
         null, // id không có trong UserEntity

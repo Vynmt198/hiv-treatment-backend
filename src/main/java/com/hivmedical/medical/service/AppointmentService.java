@@ -30,6 +30,8 @@ import com.hivmedical.medical.entitty.AppointmentStatus;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import com.google.api.services.calendar.model.Event;
+
 
 @Service
 public class AppointmentService {
@@ -56,6 +58,9 @@ public class AppointmentService {
 
   @Autowired
   private PatientProfileRepository patientProfileRepository;
+
+  @Autowired
+  private GoogleCalendarService googleCalendarService;
 
   @Transactional
   public AppointmentDTO createAppointment(AppointmentDTO dto) {
@@ -124,7 +129,6 @@ public class AppointmentService {
         if (!isAvailable) {
           throw new IllegalArgumentException("Khung giờ này không còn trống");
         }
-
         Schedule bookedSchedule = availableSchedules.stream()
             .filter(schedule -> schedule.getStartTime().equals(finalAppointmentDate))
             .findFirst()
@@ -134,6 +138,12 @@ public class AppointmentService {
         }
         // Giữ slot ở trạng thái PENDING, chờ thanh toán
         scheduleService.holdScheduleForBooking(bookedSchedule.getId());
+
+        // Lấy lại slot đã cập nhật trạng thái từ DB
+        Schedule updatedSchedule = scheduleRepository.findById(bookedSchedule.getId())
+            .orElseThrow(
+                () -> new IllegalArgumentException("Khung giờ với ID " + bookedSchedule.getId() + " không tồn tại"));
+        entity.setSchedule(updatedSchedule);
       } catch (DateTimeParseException e) {
         throw new IllegalArgumentException("Định dạng ngày giờ không hợp lệ: " + dto.getAppointmentDate());
       }
@@ -212,6 +222,7 @@ public class AppointmentService {
     if (!isAvailable) {
       throw new IllegalArgumentException("Khung giờ này không còn trống");
     }
+    // Đặt lịch online
     Schedule bookedSchedule = availableSchedules.stream()
         .filter(schedule -> schedule.getStartTime().equals(parsedAppointmentDate))
         .findFirst()
@@ -219,6 +230,12 @@ public class AppointmentService {
     if (!bookedSchedule.isAvailable()) {
       throw new IllegalArgumentException("Khung giờ này đã có người đặt");
     }
+    // Giữ slot ở trạng thái PENDING, chờ thanh toán
+    scheduleService.holdScheduleForBooking(bookedSchedule.getId());
+    // Lấy lại slot đã cập nhật trạng thái từ DB
+    Schedule updatedSchedule = scheduleRepository.findById(bookedSchedule.getId())
+        .orElseThrow(
+            () -> new IllegalArgumentException("Khung giờ với ID " + bookedSchedule.getId() + " không tồn tại"));
     // Tạo user nếu chưa có
     Account user = accountRepository.findByEmail(dto.getEmail()).orElseGet(() -> {
       Account newUser = new Account();
@@ -243,8 +260,39 @@ public class AppointmentService {
     entity.setGender(dto.getGender());
     entity.setDescription(dto.getDescription());
     entity.setBookingMode(AppointmentEntity.BookingMode.ONLINE);
+
+    // Gán fullName
+    if (dto.getFullName() != null && !dto.getFullName().isEmpty()) {
+      entity.setFullName(dto.getFullName());
+    } else if (dto.getAliasName() != null && !dto.getAliasName().isEmpty()) {
+      entity.setFullName(dto.getAliasName());
+    }
+    // Tạo Google Meet link
+    String googleMeetLink = null;
+    try {
+      String patientName = dto.getFullName() != null ? dto.getFullName() : dto.getAliasName();
+      String doctorName = doctor.getFullName();
+      String description = dto.getDescription();
+      String patientEmail = dto.getEmail();
+      LocalDateTime start = parsedAppointmentDate;
+      LocalDateTime end = parsedAppointmentDate.plusMinutes(30);
+      Event event = googleCalendarService.createOnlineAppointmentEvent(
+          "Tư vấn với " + doctorName + " cho " + patientName,
+          description,
+          start,
+          end,
+          patientEmail);
+      if (event.getHangoutLink() != null) {
+        googleMeetLink = event.getHangoutLink();
+      }
+    } catch (Exception e) {
+      logger.error("Không thể tạo Google Meet: " + e.getMessage(), e);
+    }
+    entity.setGoogleMeetLink(googleMeetLink);
+    entity.setSchedule(updatedSchedule);
     AppointmentEntity saved = appointmentRepository.save(entity);
     scheduleService.markScheduleAsBooked(bookedSchedule.getId());
+
     PatientProfile profile = patientProfileRepository.findByAccount(user).orElse(null);
     if (profile == null) {
       profile = new PatientProfile();
@@ -296,6 +344,9 @@ public class AppointmentService {
     if (!isAvailable) {
       throw new IllegalArgumentException("Khung giờ này không còn trống");
     }
+
+    // Đặt lịch ẩn danh
+
     Schedule bookedSchedule = availableSchedules.stream()
         .filter(schedule -> schedule.getStartTime().equals(parsedAppointmentDate))
         .findFirst()
@@ -303,6 +354,13 @@ public class AppointmentService {
     if (!bookedSchedule.isAvailable()) {
       throw new IllegalArgumentException("Khung giờ này đã có người đặt");
     }
+    // Giữ slot ở trạng thái PENDING, chờ thanh toán
+    scheduleService.holdScheduleForBooking(bookedSchedule.getId());
+    // Lấy lại slot đã cập nhật trạng thái từ DB
+    Schedule updatedSchedule = scheduleRepository.findById(bookedSchedule.getId())
+        .orElseThrow(
+            () -> new IllegalArgumentException("Khung giờ với ID " + bookedSchedule.getId() + " không tồn tại"));
+
     // Tạo user ẩn danh tạm thời
     Account user = new Account();
     user.setEmail("anonymous_" + System.currentTimeMillis() + "@anonymous.com");
@@ -325,8 +383,33 @@ public class AppointmentService {
     entity.setGender(dto.getGender());
     entity.setDescription(dto.getDescription());
     entity.setBookingMode(AppointmentEntity.BookingMode.ANONYMOUS_ONLINE);
+
+    // Tạo Google Meet link
+    String googleMeetLink = null;
+    try {
+      String patientName = dto.getAliasName();
+      String doctorName = doctor.getFullName();
+      String description = dto.getDescription();
+      String patientEmail = null;
+      LocalDateTime start = parsedAppointmentDate;
+      LocalDateTime end = parsedAppointmentDate.plusMinutes(30);
+      Event event = googleCalendarService.createOnlineAppointmentEvent(
+          "Tư vấn ẩn danh với " + doctorName + " cho " + patientName,
+          description,
+          start,
+          end,
+          patientEmail);
+      if (event.getHangoutLink() != null) {
+        googleMeetLink = event.getHangoutLink();
+      }
+    } catch (Exception e) {
+      logger.error("Không thể tạo Google Meet: " + e.getMessage(), e);
+    }
+    entity.setGoogleMeetLink(googleMeetLink);
+    entity.setSchedule(updatedSchedule);
     AppointmentEntity saved = appointmentRepository.save(entity);
     scheduleService.markScheduleAsBooked(bookedSchedule.getId());
+
     PatientProfile profile = patientProfileRepository.findByAccount(user).orElse(null);
     if (profile == null) {
       profile = new PatientProfile();
@@ -374,11 +457,25 @@ public class AppointmentService {
     }
     dto.setBookingMode(entity.getBookingMode() != null ? entity.getBookingMode().name() : null);
     dto.setPrice(entity.getService().getPrice());
+    
+    // Set googleMeetLink nếu entity có trường này
+    dto.setGoogleMeetLink(entity.getGoogleMeetLink());
     return dto;
   }
 
   public List<Schedule> getAvailableSchedules(Long doctorId, LocalDateTime startTime) {
-    return scheduleRepository.findByDoctorIdAndIsAvailableTrueAndStartTimeAfter(doctorId, startTime);
+
+    return scheduleRepository.findByDoctorIdAndIsAvailableTrueAndStartTimeAfter(doctorId, startTime)
+        .stream()
+        .filter(s -> s.getStatus() == Schedule.Status.AVAILABLE)
+        .toList();
+  }
+
+  public List<Schedule> getAvailableSchedules(Long doctorId, LocalDate date) {
+    return scheduleRepository.findByDoctorIdAndDateAndIsAvailableTrue(doctorId, date)
+        .stream()
+        .filter(s -> s.getStatus() == Schedule.Status.AVAILABLE)
+        .toList();
   }
 
   // Thêm hàm nhận AppointmentStatus cho updateAppointmentStatus
@@ -422,8 +519,11 @@ public class AppointmentService {
     }
     appointment.setUpdatedAt(LocalDateTime.now());
     appointmentRepository.save(appointment);
-    // Nếu cần, cập nhật schedule sang BOOKED (nếu có liên kết)
-    // scheduleService.confirmScheduleBooking(appointment.getScheduleId());
+
+    if (appointment.getSchedule() != null) {
+      scheduleService.confirmScheduleBooking(appointment.getSchedule().getId());
+    }
+
     return mapToDTO(appointment);
   }
 

@@ -40,8 +40,6 @@ public class DoctorService {
     this.objectMapper = objectMapper;
   }
 
-
-
   public Page<DoctorDTO> getDoctors(String search, String searchBy, Pageable pageable) {
     Page<Doctor> doctors;
     if (search != null && !search.isEmpty()) {

@@ -24,6 +24,9 @@ public class ScheduleService {
     Schedule schedule = scheduleRepository.findById(scheduleId)
         .orElseThrow(() -> new IllegalArgumentException("Khung giờ với ID " + scheduleId + " không tồn tại"));
     schedule.setAvailable(false);
+
+    schedule.setStatus(Status.BOOKED);
+
     scheduleRepository.save(schedule);
   }
 
@@ -36,11 +39,14 @@ public class ScheduleService {
     Schedule schedule = scheduleRepository.findById(scheduleId)
         .orElseThrow(() -> new IllegalArgumentException("Khung giờ với ID " + scheduleId + " không tồn tại"));
     if (schedule.getStatus() != Status.AVAILABLE) {
+      System.out.println("Slot " + scheduleId + " không khả dụng, status hiện tại: " + schedule.getStatus());
       throw new IllegalStateException("Slot này không khả dụng");
     }
     schedule.setStatus(Status.PENDING);
+    schedule.setAvailable(false);
     schedule.setPendingUntil(LocalDateTime.now().plusMinutes(5));
     scheduleRepository.save(schedule);
+    System.out.println("Slot " + scheduleId + " đã được giữ chỗ thành công!");
   }
 
   // Xác nhận thanh toán thành công: chuyển slot sang BOOKED
@@ -51,6 +57,7 @@ public class ScheduleService {
       throw new IllegalStateException("Slot này không ở trạng thái chờ thanh toán");
     }
     schedule.setStatus(Status.BOOKED);
+    schedule.setAvailable(false);
     schedule.setPendingUntil(null);
     scheduleRepository.save(schedule);
   }
@@ -61,6 +68,7 @@ public class ScheduleService {
     List<Schedule> expired = scheduleRepository.findByStatusAndPendingUntilBefore(Status.PENDING, LocalDateTime.now());
     for (Schedule s : expired) {
       s.setStatus(Status.AVAILABLE);
+      s.setAvailable(true);
       s.setPendingUntil(null);
       scheduleRepository.save(s);
     }

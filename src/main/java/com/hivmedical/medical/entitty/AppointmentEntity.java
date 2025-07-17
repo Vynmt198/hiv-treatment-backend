@@ -24,6 +24,10 @@ public class AppointmentEntity {
   @ManyToOne
   private Doctor doctor;
 
+  @ManyToOne
+  @JoinColumn(name = "schedule_id", nullable = false)
+  private Schedule schedule;
+
   @Column(nullable = false, columnDefinition = "NVARCHAR(50) COLLATE Vietnamese_CI_AS")
   private String appointmentType;
 
@@ -71,7 +75,8 @@ public class AppointmentEntity {
 
   public AppointmentEntity(Long id, Account user, ServiceEntity service, Doctor doctor,
       String appointmentType, LocalDateTime appointmentDate, AppointmentStatus status, LocalDateTime createdAt,
-      LocalDateTime updatedAt, String phone, String gender, String description) {
+      LocalDateTime updatedAt, String phone, String gender, String description, Schedule schedule) {
+
     this.id = id;
     this.user = user;
     this.service = service;
@@ -84,6 +89,8 @@ public class AppointmentEntity {
     this.phone = phone;
     this.gender = gender;
     this.description = description;
+
+    this.schedule = schedule;
   }
 
   public Long getId() {
@@ -158,6 +165,14 @@ public class AppointmentEntity {
     this.doctor = doctor;
   }
 
+  public Schedule getSchedule() {
+    return schedule;
+  }
+
+  public void setSchedule(Schedule schedule) {
+    this.schedule = schedule;
+  }
+  
   public String getPhone() {
     return phone;
   }
@@ -206,5 +221,16 @@ public class AppointmentEntity {
 
   public void setBookingMode(BookingMode bookingMode) {
     this.bookingMode = bookingMode;
+  }
+
+  @Column(name = "google_meet_link", length = 512)
+  private String googleMeetLink;
+
+  public String getGoogleMeetLink() {
+    return googleMeetLink;
+  }
+
+  public void setGoogleMeetLink(String googleMeetLink) {
+    this.googleMeetLink = googleMeetLink;
   }
 }
