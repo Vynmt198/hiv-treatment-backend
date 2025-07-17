@@ -143,4 +143,11 @@ public class AppointmentController {
     AppointmentDTO updated = appointmentService.confirmPayment(appointmentId);
     return ResponseEntity.ok(updated);
   }
+
+  // Lấy lịch hẹn theo doctorId
+  @GetMapping("/doctor/{doctorId}")
+  @PreAuthorize("hasAnyRole('DOCTOR', 'STAFF', 'ADMIN')")
+  public ResponseEntity<List<AppointmentDTO>> getAppointmentsByDoctor(@PathVariable Long doctorId) {
+    return ResponseEntity.ok(appointmentService.getAppointmentsByDoctor(doctorId));
+  }
 }
