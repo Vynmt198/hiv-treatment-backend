@@ -207,4 +207,15 @@ public class AppointmentEntity {
   public void setBookingMode(BookingMode bookingMode) {
     this.bookingMode = bookingMode;
   }
+
+  @Column(name = "google_meet_link", length = 512)
+  private String googleMeetLink;
+
+  public String getGoogleMeetLink() {
+    return googleMeetLink;
+  }
+
+  public void setGoogleMeetLink(String googleMeetLink) {
+    this.googleMeetLink = googleMeetLink;
+  }
 }

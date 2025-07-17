@@ -30,6 +30,7 @@ import com.hivmedical.medical.entitty.AppointmentStatus;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import com.google.api.services.calendar.model.Event;
 
 @Service
 public class AppointmentService {
@@ -56,6 +57,9 @@ public class AppointmentService {
 
   @Autowired
   private PatientProfileRepository patientProfileRepository;
+
+  @Autowired
+  private GoogleCalendarService googleCalendarService;
 
   @Transactional
   public AppointmentDTO createAppointment(AppointmentDTO dto) {
@@ -243,6 +247,31 @@ public class AppointmentService {
     entity.setGender(dto.getGender());
     entity.setDescription(dto.getDescription());
     entity.setBookingMode(AppointmentEntity.BookingMode.ONLINE);
+
+    // Tạo Google Meet link
+    String googleMeetLink = null;
+    try {
+      // Sử dụng GoogleCalendarService để tạo sự kiện và lấy link Google Meet
+      String patientName = dto.getFullName() != null ? dto.getFullName() : dto.getAliasName();
+      String doctorName = doctor.getFullName();
+      String description = dto.getDescription();
+      String patientEmail = dto.getEmail();
+      LocalDateTime start = parsedAppointmentDate;
+      LocalDateTime end = parsedAppointmentDate.plusMinutes(30); // Giả sử mỗi lịch hẹn 30 phút
+      Event event = googleCalendarService.createOnlineAppointmentEvent(
+          "Tư vấn với " + doctorName + " cho " + patientName,
+          description,
+          start,
+          end,
+          patientEmail);
+      if (event.getHangoutLink() != null) {
+        googleMeetLink = event.getHangoutLink();
+      }
+    } catch (Exception e) {
+      logger.error("Không thể tạo Google Meet: " + e.getMessage(), e);
+      // Vẫn cho phép tạo lịch hẹn, chỉ để link là null
+    }
+    entity.setGoogleMeetLink(googleMeetLink);
     AppointmentEntity saved = appointmentRepository.save(entity);
     scheduleService.markScheduleAsBooked(bookedSchedule.getId());
     PatientProfile profile = patientProfileRepository.findByAccount(user).orElse(null);
@@ -325,6 +354,30 @@ public class AppointmentService {
     entity.setGender(dto.getGender());
     entity.setDescription(dto.getDescription());
     entity.setBookingMode(AppointmentEntity.BookingMode.ANONYMOUS_ONLINE);
+
+    // Tạo Google Meet link
+    String googleMeetLink = null;
+    try {
+      String patientName = dto.getAliasName();
+      String doctorName = doctor.getFullName();
+      String description = dto.getDescription();
+      String patientEmail = null; // anonymous không có email
+      LocalDateTime start = parsedAppointmentDate;
+      LocalDateTime end = parsedAppointmentDate.plusMinutes(30);
+      Event event = googleCalendarService.createOnlineAppointmentEvent(
+          "Tư vấn ẩn danh với " + doctorName + " cho " + patientName,
+          description,
+          start,
+          end,
+          patientEmail);
+      if (event.getHangoutLink() != null) {
+        googleMeetLink = event.getHangoutLink();
+      }
+    } catch (Exception e) {
+      logger.error("Không thể tạo Google Meet: " + e.getMessage(), e);
+      // Vẫn cho phép tạo lịch hẹn, chỉ để link là null
+    }
+    entity.setGoogleMeetLink(googleMeetLink);
     AppointmentEntity saved = appointmentRepository.save(entity);
     scheduleService.markScheduleAsBooked(bookedSchedule.getId());
     PatientProfile profile = patientProfileRepository.findByAccount(user).orElse(null);
@@ -374,6 +427,8 @@ public class AppointmentService {
     }
     dto.setBookingMode(entity.getBookingMode() != null ? entity.getBookingMode().name() : null);
     dto.setPrice(entity.getService().getPrice());
+    // Set googleMeetLink nếu entity có trường này
+    dto.setGoogleMeetLink(entity.getGoogleMeetLink());
     return dto;
   }
 

@@ -47,6 +47,17 @@ public class AppointmentDTO {
 
   private String bookingMode;
 
+  // Thêm trường googleMeetLink để trả về link Google Meet
+  private String googleMeetLink;
+
+  public String getGoogleMeetLink() {
+    return googleMeetLink;
+  }
+
+  public void setGoogleMeetLink(String googleMeetLink) {
+    this.googleMeetLink = googleMeetLink;
+  }
+
   public AppointmentDTO() {
   }
 
