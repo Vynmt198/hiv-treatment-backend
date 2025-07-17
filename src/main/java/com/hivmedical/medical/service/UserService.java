@@ -174,7 +174,9 @@ public class UserService {
   }
 
   private PatientProfileDTO mapToProfileDTO(UserEntity user) {
+    // Nếu UserEntity không có id, có thể truyền null hoặc lấy từ nơi khác nếu có
     return new PatientProfileDTO(
+        null, // id không có trong UserEntity
         user.getFullName(),
         user.getGender(),
         user.getPhone(),
@@ -186,6 +188,7 @@ public class UserService {
 
   private PatientProfileDTO mapToProfileDTO(PatientProfile profile) {
     return new PatientProfileDTO(
+        profile.getId(), // truyền id
         profile.getFullName(),
         profile.getGender(),
         profile.getPhone(),
