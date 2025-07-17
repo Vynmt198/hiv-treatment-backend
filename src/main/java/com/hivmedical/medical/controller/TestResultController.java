@@ -77,4 +77,10 @@ public class TestResultController {
         return ResponseEntity.ok(testResultService.getTestResultDTO(id));
     }
 
+    // Lấy danh sách phân loại test results
+    @GetMapping("/categories")
+    @PreAuthorize("hasAnyRole('STAFF', 'ADMIN', 'DOCTOR', 'PATIENT')")
+    public ResponseEntity<List<com.hivmedical.medical.entitty.TestCategory>> getAllTestCategories() {
+        return ResponseEntity.ok(testResultService.getAllTestCategories());
+    }
 }
