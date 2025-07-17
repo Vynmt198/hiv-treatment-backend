@@ -40,22 +40,7 @@ public class DoctorService {
     this.objectMapper = objectMapper;
   }
 
-  // create
-  public DoctorDTO createDoctor(DoctorDTO dto) {
-    if (doctorRepository.findByEmail(dto.getEmail()).isPresent()) {
-      throw new IllegalArgumentException("Email đã tồn tại: " + dto.getEmail());
-    }
-    Doctor doctor = new Doctor();
-    doctor.setFullName(dto.getFullName());
-    doctor.setSpecialization(dto.getSpecialization());
-    doctor.setQualification(dto.getQualification());
-    doctor.setEmail(dto.getEmail());
-    doctor.setPhoneNumber(dto.getPhoneNumber());
-    doctor.setWorkingSchedule(dto.getWorkingSchedule());
-    doctor.setImageUrl(dto.getImageUrl());
-    Doctor savedDoctor = doctorRepository.save(doctor);
-    return convertToDTO(savedDoctor);
-  }
+
 
   public Page<DoctorDTO> getDoctors(String search, String searchBy, Pageable pageable) {
     Page<Doctor> doctors;

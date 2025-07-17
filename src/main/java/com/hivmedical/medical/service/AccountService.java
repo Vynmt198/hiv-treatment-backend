@@ -272,6 +272,7 @@ public class AccountService {
 
     private PatientProfileDTO mapToProfileDTO(PatientProfile profile) {
         return new PatientProfileDTO(
+                profile.getId(),
                 profile.getFullName(),
                 profile.getGender(),
                 profile.getPhone(),

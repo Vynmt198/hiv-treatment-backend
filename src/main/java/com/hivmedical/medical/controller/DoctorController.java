@@ -12,6 +12,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.security.access.prepost.PreAuthorize;
 
 @RestController
 @RequestMapping("/api/doctors")
@@ -25,11 +26,6 @@ public class DoctorController {
   }
 
 
-  @PostMapping("/create")
-  public ResponseEntity<DoctorDTO> createDoctor(@RequestBody DoctorDTO dto) {
-    return ResponseEntity.ok(doctorService.createDoctor(dto));
-  }
-
   // Read (danh sách với tìm kiếm và phân trang)
   @GetMapping
   public ResponseEntity<Page<DoctorDTO>> getDoctors(
@@ -39,12 +35,15 @@ public class DoctorController {
     return ResponseEntity.ok(doctorService.getDoctors(search, searchBy, pageable));
   }
   // Update
+  
   @PutMapping("/{id}")
+  @PreAuthorize("hasRole('ADMIN')")
   public ResponseEntity<DoctorDTO> updateDoctor(@PathVariable Long id, @RequestBody DoctorDTO dto) {
     return ResponseEntity.ok(doctorService.updateDoctor(id, dto));
   }
   // Delete
   @DeleteMapping("/{id}")
+  @PreAuthorize("hasRole('ADMIN')")
   public ResponseEntity<Void> deleteDoctor(@PathVariable Long id) {
     doctorService.deleteDoctor(id);
     return ResponseEntity.noContent().build();
