@@ -76,6 +76,7 @@ public class AppointmentEntity {
   public AppointmentEntity(Long id, Account user, ServiceEntity service, Doctor doctor,
       String appointmentType, LocalDateTime appointmentDate, AppointmentStatus status, LocalDateTime createdAt,
       LocalDateTime updatedAt, String phone, String gender, String description, Schedule schedule) {
+
     this.id = id;
     this.user = user;
     this.service = service;
@@ -88,6 +89,7 @@ public class AppointmentEntity {
     this.phone = phone;
     this.gender = gender;
     this.description = description;
+
     this.schedule = schedule;
   }
 
@@ -170,7 +172,7 @@ public class AppointmentEntity {
   public void setSchedule(Schedule schedule) {
     this.schedule = schedule;
   }
-
+  
   public String getPhone() {
     return phone;
   }

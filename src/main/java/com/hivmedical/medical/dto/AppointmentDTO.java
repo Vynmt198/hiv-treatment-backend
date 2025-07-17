@@ -46,7 +46,6 @@ public class AppointmentDTO {
   private String birthDate;
 
   private String bookingMode;
-
   // Thêm trường googleMeetLink để trả về link Google Meet
   private String googleMeetLink;
 

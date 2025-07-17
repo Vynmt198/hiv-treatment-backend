@@ -1,8 +1,5 @@
 package com.hivmedical.medical.dto;
 
-
-
-
 public class RegisterDoctorRequest {
     private String email;
     private String password;

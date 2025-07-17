@@ -13,6 +13,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import org.springframework.security.access.prepost.PreAuthorize;
+
+
 @RestController
 @RequestMapping("/api/doctors")
 public class DoctorController {
@@ -22,12 +25,6 @@ public class DoctorController {
 
   public DoctorController(DoctorService doctorService) {
     this.doctorService = doctorService;
-  }
-
-
-  @PostMapping("/create")
-  public ResponseEntity<DoctorDTO> createDoctor(@RequestBody DoctorDTO dto) {
-    return ResponseEntity.ok(doctorService.createDoctor(dto));
   }
 
   // Read (danh sách với tìm kiếm và phân trang)
@@ -40,11 +37,13 @@ public class DoctorController {
   }
   // Update
   @PutMapping("/{id}")
+  @PreAuthorize("hasRole('ADMIN')")
   public ResponseEntity<DoctorDTO> updateDoctor(@PathVariable Long id, @RequestBody DoctorDTO dto) {
     return ResponseEntity.ok(doctorService.updateDoctor(id, dto));
   }
   // Delete
   @DeleteMapping("/{id}")
+  @PreAuthorize("hasRole('ADMIN')")
   public ResponseEntity<Void> deleteDoctor(@PathVariable Long id) {
     doctorService.deleteDoctor(id);
     return ResponseEntity.noContent().build();

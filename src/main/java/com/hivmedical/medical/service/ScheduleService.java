@@ -24,7 +24,9 @@ public class ScheduleService {
     Schedule schedule = scheduleRepository.findById(scheduleId)
         .orElseThrow(() -> new IllegalArgumentException("Khung giờ với ID " + scheduleId + " không tồn tại"));
     schedule.setAvailable(false);
+
     schedule.setStatus(Status.BOOKED);
+
     scheduleRepository.save(schedule);
   }
 
