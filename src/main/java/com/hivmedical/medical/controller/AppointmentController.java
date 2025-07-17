@@ -17,6 +17,8 @@ import jakarta.validation.Valid;
 import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
+import com.hivmedical.medical.entitty.Schedule;
+import com.hivmedical.medical.service.ScheduleService;
 
 @RestController
 @RequestMapping("/api/appointments")
@@ -27,6 +29,9 @@ public class AppointmentController {
 
   @Autowired
   private MomoPaymentService momoPaymentService;
+
+  @Autowired
+  private ScheduleService scheduleService;
 
   @PostMapping
   @PreAuthorize("hasAnyRole('PATIENT', 'ADMIN')")
