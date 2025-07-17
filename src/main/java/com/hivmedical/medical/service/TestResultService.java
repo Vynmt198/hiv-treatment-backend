@@ -146,4 +146,8 @@ public class TestResultService {
     public TestResultDTO getTestResultDTO(Long id) {
         return toDTO(getTestResult(id));
     }
+
+    public List<TestCategory> getAllTestCategories() {
+        return testCategoryRepository.findAll();
+    }
 }
