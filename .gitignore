@@ -42,3 +42,6 @@ log/
 logs/
 *.log
 *.gz
+
+/src/main/resources/credentials.json
+/tokens/
