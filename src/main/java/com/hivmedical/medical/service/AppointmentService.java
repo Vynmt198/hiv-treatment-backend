@@ -448,4 +448,11 @@ public class AppointmentService {
       logger.info("Auto-cancelled {} unpaid appointments (older than 15 minutes)", staleAppointments.size());
     }
   }
+
+  public List<AppointmentDTO> getAppointmentsByDoctor(Long doctorId) {
+    return appointmentRepository.findByDoctorId(doctorId)
+        .stream()
+        .map(this::mapToDTO)
+        .collect(Collectors.toList());
+  }
 }
