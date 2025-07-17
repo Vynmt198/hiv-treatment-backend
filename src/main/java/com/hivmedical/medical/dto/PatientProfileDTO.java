@@ -3,6 +3,7 @@ package com.hivmedical.medical.dto;
 import java.time.LocalDate;
 
 public class PatientProfileDTO {
+    private Long id;
     private String fullName;
     private String gender;
     private String phone;
@@ -12,6 +13,13 @@ public class PatientProfileDTO {
     private LocalDate treatmentStartDate;
 
     // Getter/Setter
+    public Long getId() {
+        return id;
+    }
+    public void setId(Long id) {
+        this.id = id;
+    }
+
     public String getFullName() {
         return fullName;
     }
@@ -72,8 +80,9 @@ public class PatientProfileDTO {
     public PatientProfileDTO() {
     }
 
-    public PatientProfileDTO(String fullName, String gender, String phone, String address, LocalDate birthDate,
+    public PatientProfileDTO(Long id, String fullName, String gender, String phone, String address, LocalDate birthDate,
             String hivStatus, LocalDate treatmentStartDate) {
+        this.id = id;
         this.fullName = fullName;
         this.gender = gender;
         this.phone = phone;
