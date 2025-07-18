@@ -1,6 +1,9 @@
 package com.hivmedical.medical.service;
 
+import com.hivmedical.medical.entitty.AppointmentEntity;
+import com.hivmedical.medical.entitty.AppointmentStatus;
 import com.hivmedical.medical.entitty.Schedule;
+import com.hivmedical.medical.repository.AppointmentRepository;
 import com.hivmedical.medical.repository.ScheduleRepository;
 import java.time.LocalDateTime;
 import java.time.LocalDate;
@@ -15,6 +18,8 @@ public class ScheduleService {
 
   @Autowired
   private ScheduleRepository scheduleRepository;
+  @Autowired
+  private AppointmentRepository appointmentRepository;
 
   public List<Schedule> getAvailableSchedules(Long doctorId, LocalDateTime startTime) {
     return scheduleRepository.findByDoctorIdAndIsAvailableTrueAndStartTimeAfter(doctorId, startTime);
@@ -53,13 +58,21 @@ public class ScheduleService {
   public void confirmScheduleBooking(Long scheduleId) {
     Schedule schedule = scheduleRepository.findById(scheduleId)
         .orElseThrow(() -> new IllegalArgumentException("Khung giờ với ID " + scheduleId + " không tồn tại"));
-    if (schedule.getStatus() != Status.PENDING) {
+    AppointmentEntity appointmentEntity = appointmentRepository.findByScheduleId(scheduleId);
+    if (appointmentEntity == null) {
+      throw new IllegalArgumentException("Appointment ID không tồn tại");
+
+    }
+    if (appointmentEntity.getStatus() != AppointmentStatus.IN_PROGRESS) {
       throw new IllegalStateException("Slot này không ở trạng thái chờ thanh toán");
     }
+
     schedule.setStatus(Status.BOOKED);
     schedule.setAvailable(false);
     schedule.setPendingUntil(null);
     scheduleRepository.save(schedule);
+    appointmentEntity.setStatus(AppointmentStatus.BOOKED);
+    appointmentRepository.save(appointmentEntity);
   }
 
   // Scheduled job: giải phóng slot PENDING hết hạn giữ chỗ
@@ -72,5 +85,10 @@ public class ScheduleService {
       s.setPendingUntil(null);
       scheduleRepository.save(s);
     }
+  }
+
+  public Schedule getScheduleById(Long id) {
+    return scheduleRepository.findById(id)
+        .orElseThrow(() -> new IllegalArgumentException("Khung giờ với ID " + id + " không tồn tại"));
   }
 }

@@ -49,6 +49,16 @@ public class AppointmentDTO {
   // Thêm trường googleMeetLink để trả về link Google Meet
   private String googleMeetLink;
 
+  private Long scheduleId;
+
+  public Long getScheduleId() {
+    return scheduleId;
+  }
+
+  public void setScheduleId(Long scheduleId) {
+    this.scheduleId = scheduleId;
+  }
+
   public String getGoogleMeetLink() {
     return googleMeetLink;
   }

@@ -8,6 +8,8 @@ import com.hivmedical.medical.entitty.Doctor;
 import com.hivmedical.medical.entitty.Schedule;
 import com.hivmedical.medical.entitty.ServiceEntity;
 import com.hivmedical.medical.entitty.Account;
+import com.hivmedical.medical.entitty.Transaction;
+import com.hivmedical.medical.entitty.TransactionType;
 import com.hivmedical.medical.repository.AppointmentRepository;
 import com.hivmedical.medical.repository.DoctorRepository;
 import com.hivmedical.medical.repository.ServiceRepository;
@@ -31,6 +33,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.google.api.services.calendar.model.Event;
+import com.hivmedical.medical.service.FinanceService;
 
 @Service
 public class AppointmentService {
@@ -60,6 +63,9 @@ public class AppointmentService {
 
   @Autowired
   private GoogleCalendarService googleCalendarService;
+
+  @Autowired
+  private FinanceService financeService;
 
   @Transactional
   public AppointmentDTO createAppointment(AppointmentDTO dto) {
@@ -103,6 +109,7 @@ public class AppointmentService {
     entity.setBookingMode(AppointmentEntity.BookingMode.NORMAL);
 
     if (dto.getAppointmentDate() != null) {
+
       LocalDateTime parsedAppointmentDate;
       try {
         try {
@@ -501,13 +508,12 @@ public class AppointmentService {
         .collect(Collectors.toList());
   }
 
-  @Transactional
   public AppointmentDTO confirmPayment(Long appointmentId) {
     AppointmentEntity appointment = appointmentRepository.findById(appointmentId)
         .orElseThrow(() -> new IllegalArgumentException("Appointment not found"));
     switch (appointment.getBookingMode()) {
       case NORMAL:
-        appointment.setStatus(AppointmentStatus.BOOKED); // hoặc IN_PROGRESS nếu muốn
+        appointment.setStatus(AppointmentStatus.IN_PROGRESS); // hoặc IN_PROGRESS nếu muốn
         break;
       case ONLINE:
         appointment.setStatus(AppointmentStatus.IN_PROGRESS); // hoặc thêm ONLINE_PAID nếu muốn
@@ -521,6 +527,30 @@ public class AppointmentService {
 
     if (appointment.getSchedule() != null) {
       scheduleService.confirmScheduleBooking(appointment.getSchedule().getId());
+    }
+
+    // Tích hợp lưu Transaction cho các dịch vụ đặt lịch online
+    if ((appointment.getBookingMode() == AppointmentEntity.BookingMode.ONLINE
+        || appointment.getBookingMode() == AppointmentEntity.BookingMode.ANONYMOUS_ONLINE)
+        && appointment.getStatus() == AppointmentStatus.IN_PROGRESS) {
+      // Lấy giá dịch vụ (ServiceEntity.price là String, cần chuyển sang Long)
+      String priceStr = appointment.getService().getPrice();
+      Long price = 0L;
+      try {
+        price = Long.parseLong(priceStr);
+      } catch (Exception e) {
+        // Nếu lỗi chuyển đổi, bỏ qua lưu transaction
+        price = 0L;
+      }
+      if (price > 0) {
+        Transaction transaction = new Transaction();
+        transaction.setDate(appointment.getUpdatedAt().toLocalDate());
+        transaction.setType(TransactionType.INCOME);
+        transaction.setDescription(
+            "Thanh toán dịch vụ '" + appointment.getService().getName() + "' cho lịch hẹn #" + appointment.getId());
+        transaction.setAmount(price);
+        financeService.createTransaction(transaction);
+      }
     }
 
     return mapToDTO(appointment);

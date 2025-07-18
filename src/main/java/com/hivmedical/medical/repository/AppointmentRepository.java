@@ -22,6 +22,8 @@ public interface AppointmentRepository extends JpaRepository<AppointmentEntity, 
 
     List<AppointmentEntity> findByUserUsernameAndStatus(String username, String status);
 
+    AppointmentEntity findByScheduleId(Long scheduleId);
+
     @Query("SELECT a FROM AppointmentEntity a WHERE a.status IN :statuses AND a.createdAt < :threshold")
     List<AppointmentEntity> findByStatusInAndCreatedAtBefore(@Param("statuses") List<AppointmentStatus> statuses,
             @Param("threshold") LocalDateTime threshold);

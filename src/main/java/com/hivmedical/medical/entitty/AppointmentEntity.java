@@ -172,7 +172,7 @@ public class AppointmentEntity {
   public void setSchedule(Schedule schedule) {
     this.schedule = schedule;
   }
-  
+
   public String getPhone() {
     return phone;
   }
