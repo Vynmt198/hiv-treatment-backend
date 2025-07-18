@@ -21,7 +21,6 @@ import java.util.HashMap;
 import com.hivmedical.medical.entitty.Schedule;
 import com.hivmedical.medical.service.ScheduleService;
 
-
 @RestController
 @RequestMapping("/api/appointments")
 public class AppointmentController {
@@ -37,18 +36,26 @@ public class AppointmentController {
 
   @PostMapping
   @PreAuthorize("hasAnyRole('PATIENT', 'ADMIN')")
-  public ResponseEntity<Map<String, String>> createAppointment(@Valid @RequestBody AppointmentDTO appointmentDTO,
+  public ResponseEntity<Map<String, Object>> createAppointment(@Valid @RequestBody AppointmentDTO appointmentDTO,
       BindingResult result) {
     if (result.hasErrors()) {
-      Map<String, String> error = new HashMap<>();
+      Map<String, Object> error = new HashMap<>();
       error.put("error", result.getAllErrors().get(0).getDefaultMessage());
       return ResponseEntity.badRequest().body(error);
     }
-    AppointmentDTO appointmentDTO2 = appointmentService.createAppointment(appointmentDTO);
-    String url = momoPaymentService.getPayUrl(appointmentDTO2.getId().toString(), appointmentDTO2.getPrice(),
-        "Thanh Toan Don Hang", "url", "url");
-    Map<String, String> response = new HashMap<>();
-    response.put(appointmentDTO2.toString(), "url :" + url);
+
+    AppointmentDTO savedAppointment = appointmentService.createAppointment(appointmentDTO);
+    String url = momoPaymentService.getPayUrl(
+        savedAppointment.getId().toString(),
+        savedAppointment.getPrice(),
+        "Thanh Toan Don Hang",
+        "url",
+        "url");
+
+    Map<String, Object> response = new HashMap<>();
+    response.put("appointment", savedAppointment);
+    response.put("paymentUrl", url);
+
     return ResponseEntity.ok(response);
   }
 
@@ -145,7 +152,7 @@ public class AppointmentController {
     return ResponseEntity.ok(response);
   }
 
-  @PostMapping("/confirm-payment/{appointmentId}")
+  @PutMapping("/confirm-payment/{appointmentId}")
   public ResponseEntity<AppointmentDTO> confirmPayment(@PathVariable Long appointmentId) {
     AppointmentDTO updated = appointmentService.confirmPayment(appointmentId);
     return ResponseEntity.ok(updated);

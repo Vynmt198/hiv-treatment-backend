@@ -32,7 +32,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.google.api.services.calendar.model.Event;
 
-
 @Service
 public class AppointmentService {
 
@@ -457,7 +456,7 @@ public class AppointmentService {
     }
     dto.setBookingMode(entity.getBookingMode() != null ? entity.getBookingMode().name() : null);
     dto.setPrice(entity.getService().getPrice());
-    
+
     // Set googleMeetLink nếu entity có trường này
     dto.setGoogleMeetLink(entity.getGoogleMeetLink());
     return dto;
@@ -508,7 +507,7 @@ public class AppointmentService {
         .orElseThrow(() -> new IllegalArgumentException("Appointment not found"));
     switch (appointment.getBookingMode()) {
       case NORMAL:
-        appointment.setStatus(AppointmentStatus.CHECKED_IN); // hoặc IN_PROGRESS nếu muốn
+        appointment.setStatus(AppointmentStatus.BOOKED); // hoặc IN_PROGRESS nếu muốn
         break;
       case ONLINE:
         appointment.setStatus(AppointmentStatus.IN_PROGRESS); // hoặc thêm ONLINE_PAID nếu muốn
