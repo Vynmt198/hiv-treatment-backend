@@ -1,5 +1,7 @@
 package com.hivmedical.medical.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -13,7 +15,10 @@ public class ARVProtocolDTO {
     private String contraindications;
     private String sideEffects;
     private String monitoring;
-    private boolean isActive;
+
+    @JsonProperty("isActive")
+    private Boolean isActive = true;
+
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
@@ -23,7 +28,7 @@ public class ARVProtocolDTO {
 
     public ARVProtocolDTO(Long id, String name, String description, String targetGroup,
             List<String> medications, String dosage, String contraindications,
-            String sideEffects, String monitoring, boolean isActive) {
+            String sideEffects, String monitoring, Boolean isActive) {
         this.id = id;
         this.name = name;
         this.description = description;
@@ -109,12 +114,12 @@ public class ARVProtocolDTO {
         this.monitoring = monitoring;
     }
 
-    public boolean isActive() {
+    public Boolean getIsActive() {
         return isActive;
     }
 
-    public void setActive(boolean active) {
-        isActive = active;
+    public void setIsActive(Boolean isActive) {
+        this.isActive = isActive;
     }
 
     public LocalDateTime getCreatedAt() {

@@ -79,9 +79,8 @@ public class ARVProtocolService {
         protocol.setContraindications(dto.getContraindications());
         protocol.setSideEffects(dto.getSideEffects());
         protocol.setMonitoring(dto.getMonitoring());
-        protocol.setActive(dto.isActive());
+        protocol.setActive(dto.getIsActive() != null ? dto.getIsActive() : true);
 
-        // Chuyển đổi danh sách thuốc thành JSON string
         if (dto.getMedications() != null) {
             try {
                 String medicationsJson = objectMapper.writeValueAsString(dto.getMedications());
@@ -110,7 +109,7 @@ public class ARVProtocolService {
         protocol.setContraindications(dto.getContraindications());
         protocol.setSideEffects(dto.getSideEffects());
         protocol.setMonitoring(dto.getMonitoring());
-        protocol.setActive(dto.isActive());
+        protocol.setActive(dto.getIsActive());
 
         // Chuyển đổi danh sách thuốc thành JSON string
         if (dto.getMedications() != null) {
@@ -158,7 +157,7 @@ public class ARVProtocolService {
         dto.setContraindications(protocol.getContraindications());
         dto.setSideEffects(protocol.getSideEffects());
         dto.setMonitoring(protocol.getMonitoring());
-        dto.setActive(protocol.isActive());
+        dto.setIsActive(protocol.isActive());
         dto.setCreatedAt(protocol.getCreatedAt());
         dto.setUpdatedAt(protocol.getUpdatedAt());
 
