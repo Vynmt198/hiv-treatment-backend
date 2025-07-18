@@ -6,6 +6,7 @@ public class MomoPaymentRequest {
     private String orderInfo;
     private String redirectUrl;
     private String ipnUrl;
+    private Long appointmentId;
 
     public String getOrderId() {
         return orderId;

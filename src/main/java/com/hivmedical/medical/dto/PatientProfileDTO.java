@@ -13,7 +13,7 @@ public class PatientProfileDTO {
     private String hivStatus;
     private LocalDate treatmentStartDate;
 
-    // Getter/Setter
+   
     public Long getId() {
         return id;
     }
@@ -81,8 +81,7 @@ public class PatientProfileDTO {
     public PatientProfileDTO() {
     }
 
-    public PatientProfileDTO(String fullName, String gender, String phone, String address, LocalDate birthDate,
-            String hivStatus, LocalDate treatmentStartDate) {
+  
     public PatientProfileDTO(Long id, String fullName, String gender, String phone, String address, LocalDate birthDate,
             String hivStatus, LocalDate treatmentStartDate) {
         this.id = id;
@@ -95,3 +94,4 @@ public class PatientProfileDTO {
         this.treatmentStartDate = treatmentStartDate;
     }
 }
+

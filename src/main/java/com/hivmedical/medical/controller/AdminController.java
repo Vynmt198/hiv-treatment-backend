@@ -1,7 +1,9 @@
 package com.hivmedical.medical.controller;
 
 import com.hivmedical.medical.dto.AppointmentDTO;
+import com.hivmedical.medical.dto.OverviewDTO;
 import com.hivmedical.medical.dto.RegisterDoctorRequest;
+import com.hivmedical.medical.service.AdminService;
 import com.hivmedical.medical.service.AppointmentService;
 import com.hivmedical.medical.service.UserService;
 
@@ -24,6 +26,9 @@ public class AdminController {
   @Autowired
   private UserService userService;
 
+  @Autowired
+  private AdminService adminService;
+
   @GetMapping("/appointments")
   @PreAuthorize("hasRole('ADMIN')")
   public ResponseEntity<List<AppointmentDTO>> getAllAppointments() {
@@ -43,6 +48,34 @@ public class AdminController {
       userService.registerDoctor(request);
       return ResponseEntity.ok("Tạo tài khoản và hồ sơ bác sĩ thành công!");
   }
+  @GetMapping("/overview")
+  @PreAuthorize("hasRole('ADMIN')")
+  public OverviewDTO getOverview() {
+    return adminService.getOverview();
+}
+@GetMapping("/total-patients")
+
+public long getTotalPatients() {
+    return adminService.getTotalPatients();
+}
+
+@GetMapping("/total-appointments")
+
+public long getTotalAppointments() {
+    return adminService.getTotalAppointments();
+}
+
+@GetMapping("/pending-appointments")
+
+public long getPendingAppointments() {
+    return adminService.getPendingAppointments();
+}
+
+@GetMapping("/total-doctors")
+@PreAuthorize("hasRole('ADMIN')")
+public long getTotalDoctors() {
+    return adminService.getTotalDoctors();
+}
  
 }
 
