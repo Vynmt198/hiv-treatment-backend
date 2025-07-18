@@ -430,6 +430,7 @@ public class AppointmentService {
     }
     dto.setAppointmentType(entity.getAppointmentType());
     dto.setUserUsername(entity.getUser().getUsername());
+    dto.setPatientId(entity.getUser().getId());
     if (entity.getAppointmentDate() != null) {
       dto.setAppointmentDate(entity.getAppointmentDate().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
     }
@@ -444,6 +445,7 @@ public class AppointmentService {
       PatientProfile profile = patientProfileRepository.findByAccount(entity.getUser()).orElse(null);
       String fullName = (profile != null) ? profile.getFullName() : null;
       dto.setFullName(fullName);
+
     }
     dto.setBookingMode(entity.getBookingMode() != null ? entity.getBookingMode().name() : null);
     dto.setPrice(entity.getService().getPrice());

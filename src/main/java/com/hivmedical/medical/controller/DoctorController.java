@@ -15,7 +15,6 @@ import org.springframework.web.bind.annotation.*;
 
 import org.springframework.security.access.prepost.PreAuthorize;
 
-
 @RestController
 @RequestMapping("/api/doctors")
 public class DoctorController {
@@ -30,17 +29,19 @@ public class DoctorController {
   // Read (danh sách với tìm kiếm và phân trang)
   @GetMapping
   public ResponseEntity<Page<DoctorDTO>> getDoctors(
-          @RequestParam(name = "search", required = false) String search,
-          @RequestParam(name = "searchBy", required = false) String searchBy,
-          Pageable pageable) {
+      @RequestParam(name = "search", required = false) String search,
+      @RequestParam(name = "searchBy", required = false) String searchBy,
+      Pageable pageable) {
     return ResponseEntity.ok(doctorService.getDoctors(search, searchBy, pageable));
   }
+
   // Update
   @PutMapping("/{id}")
   @PreAuthorize("hasRole('ADMIN')")
   public ResponseEntity<DoctorDTO> updateDoctor(@PathVariable Long id, @RequestBody DoctorDTO dto) {
     return ResponseEntity.ok(doctorService.updateDoctor(id, dto));
   }
+
   // Delete
   @DeleteMapping("/{id}")
   @PreAuthorize("hasRole('ADMIN')")
@@ -49,17 +50,22 @@ public class DoctorController {
     return ResponseEntity.noContent().build();
   }
 
-
   @GetMapping("/{id}")
   public ResponseEntity<DoctorDTO> getDoctorById(@PathVariable Long id) {
     DoctorDTO doctor = doctorService.getDoctorById(id);
     return ResponseEntity.ok(doctor);
   }
 
+  @GetMapping("/account/{accountId}")
+  public ResponseEntity<DoctorDTO> getDoctorByAccountId(@PathVariable Long accountId) {
+    DoctorDTO doctor = doctorService.getDoctorByAccountId(accountId);
+    return ResponseEntity.ok(doctor);
+  }
+
   @GetMapping("/{id}/schedules")
   public ResponseEntity<List<ScheduleDTO>> getDoctorAvailableSchedules(
-          @PathVariable Long id,
-          @RequestParam(required = false) String date) {
+      @PathVariable Long id,
+      @RequestParam(required = false) String date) {
     logger.debug("Fetching available schedules for doctorId: {}, date: {}", id, date);
     try {
       LocalDate localDate = (date != null) ? LocalDate.parse(date) : LocalDate.now();
