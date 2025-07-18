@@ -13,7 +13,7 @@ public class PatientProfileDTO {
     private String hivStatus;
     private LocalDate treatmentStartDate;
 
-    // Getter/Setter
+   
     public Long getId() {
         return id;
     }
@@ -95,3 +95,4 @@ public class PatientProfileDTO {
     }
 
 }
+
