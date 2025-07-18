@@ -17,6 +17,7 @@ public class PatientProfileDTO {
     public Long getId() {
         return id;
     }
+
     public void setId(Long id) {
         this.id = id;
     }
@@ -81,7 +82,6 @@ public class PatientProfileDTO {
     public PatientProfileDTO() {
     }
 
-  
     public PatientProfileDTO(Long id, String fullName, String gender, String phone, String address, LocalDate birthDate,
             String hivStatus, LocalDate treatmentStartDate) {
         this.id = id;
@@ -93,5 +93,6 @@ public class PatientProfileDTO {
         this.hivStatus = hivStatus;
         this.treatmentStartDate = treatmentStartDate;
     }
+
 }
 
