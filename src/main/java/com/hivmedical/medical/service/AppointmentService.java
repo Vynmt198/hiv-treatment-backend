@@ -367,14 +367,10 @@ public class AppointmentService {
         .orElseThrow(
             () -> new IllegalArgumentException("Khung giờ với ID " + bookedSchedule.getId() + " không tồn tại"));
 
-    // Tạo user ẩn danh tạm thời
-    Account user = new Account();
-    user.setEmail("anonymous_" + System.currentTimeMillis() + "@anonymous.com");
-    user.setUsername("anonymous_" + System.currentTimeMillis());
-    user.setPasswordHash("");
-    user.setRole(com.hivmedical.medical.entitty.Role.PATIENT);
-    user.setEnabled(true);
-    user = accountRepository.save(user);
+    // Lấy user anonymous mặc định
+    Account user = accountRepository.findByUsername("anonymous@system.local")
+        .orElseThrow(() -> new IllegalArgumentException("Anonymous user not found"));
+
     // Tạo appointment
     AppointmentEntity entity = new AppointmentEntity();
     entity.setUser(user);
@@ -390,13 +386,13 @@ public class AppointmentService {
     entity.setDescription(dto.getDescription());
     entity.setBookingMode(AppointmentEntity.BookingMode.ANONYMOUS_ONLINE);
 
-    // Tạo Google Meet link
+    // Tạo Google Meet link với email thật
     String googleMeetLink = null;
     try {
       String patientName = dto.getAliasName();
       String doctorName = doctor.getFullName();
       String description = dto.getDescription();
-      String patientEmail = null;
+      String patientEmail = dto.getEmail();
       LocalDateTime start = parsedAppointmentDate;
       LocalDateTime end = parsedAppointmentDate.plusMinutes(30);
       Event event = googleCalendarService.createOnlineAppointmentEvent(
@@ -416,19 +412,7 @@ public class AppointmentService {
     AppointmentEntity saved = appointmentRepository.save(entity);
     scheduleService.markScheduleAsBooked(bookedSchedule.getId());
 
-    PatientProfile profile = patientProfileRepository.findByAccount(user).orElse(null);
-    if (profile == null) {
-      profile = new PatientProfile();
-      profile.setAccount(user);
-      profile.setFullName(dto.getAliasName());
-      if (dto.getBirthDate() != null && !dto.getBirthDate().isEmpty()) {
-        profile.setBirthDate(LocalDate.parse(dto.getBirthDate()));
-      } else {
-        profile.setBirthDate(LocalDate.now());
-      }
-      profile.setTreatmentStartDate(LocalDate.now());
-      patientProfileRepository.save(profile);
-    }
+    // Không tạo profile cho user ẩn danh
     return mapToDTO(saved);
   }
 

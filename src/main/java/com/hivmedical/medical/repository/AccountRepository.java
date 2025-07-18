@@ -32,4 +32,7 @@ public interface AccountRepository extends JpaRepository<Account, Long> {
 
     @Query("SELECT a FROM Account a WHERE a.username LIKE %:keyword% OR a.email LIKE %:keyword% OR a.role = :role")
     List<Account> findByKeywordOrRole(@Param("keyword") String keyword, @Param("role") Role role);
+
+    long countByRegistrationDateBefore(java.time.LocalDateTime date);
+    long countByRegistrationDateBetween(java.time.LocalDateTime start, java.time.LocalDateTime end);
 }

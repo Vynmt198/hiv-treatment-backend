@@ -21,6 +21,7 @@ public class AnonymousOnlineDTO {
     private Long doctorId;
     private Long serviceId;
     private String appointmentDate; // ISO 8601 format (e.g., "2025-07-01T10:00:00")
+    private String email;
 
     public AnonymousOnlineDTO() {
     }
@@ -103,5 +104,13 @@ public class AnonymousOnlineDTO {
 
     public void setAppointmentDate(String appointmentDate) {
         this.appointmentDate = appointmentDate;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
     }
 }
