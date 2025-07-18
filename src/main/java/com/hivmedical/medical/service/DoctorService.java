@@ -60,6 +60,12 @@ public class DoctorService {
     return convertToDTO(doctor);
   }
 
+  public DoctorDTO getDoctorByAccountId(Long accountId) {
+    Doctor doctor = doctorRepository.findByAccountId(accountId)
+        .orElseThrow(() -> new RuntimeException("Không tìm thấy bác sĩ với accountId: " + accountId));
+    return convertToDTO(doctor);
+  }
+
   // update
   public DoctorDTO updateDoctor(Long id, DoctorDTO dto) {
     Doctor doctor = doctorRepository.findById(id)

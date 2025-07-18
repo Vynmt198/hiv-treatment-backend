@@ -17,6 +17,8 @@ public class AppointmentDTO {
   @NotNull(message = "Doctor ID is required")
   private Long doctorId;
 
+  private Long patientId;
+
   @NotBlank(message = "Appointment type is required")
   private String appointmentType; // FIRST_VISIT hoặc FOLLOW_UP
 
@@ -242,5 +244,13 @@ public class AppointmentDTO {
 
   public void setBookingMode(String bookingMode) {
     this.bookingMode = bookingMode;
+  }
+
+  public Long getPatientId() {
+    return patientId;
+  }
+
+  public void setPatientId(Long patientId) {
+    this.patientId = patientId;
   }
 }

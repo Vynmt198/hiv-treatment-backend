@@ -9,9 +9,13 @@ import com.hivmedical.medical.dto.ForgotPasswordOtpRequest;
 import com.hivmedical.medical.dto.LoginRequest;
 import com.hivmedical.medical.dto.RegisterRequest;
 import com.hivmedical.medical.dto.VerifyOtpRequest;
+import com.hivmedical.medical.entitty.Doctor;
 import com.hivmedical.medical.entitty.Role;
 import com.hivmedical.medical.entitty.UserEntity;
+import com.hivmedical.medical.entitty.Account;
+import com.hivmedical.medical.repository.DoctorRepository;
 import com.hivmedical.medical.repository.UserRepositoty;
+import com.hivmedical.medical.repository.AccountRepository;
 import com.hivmedical.medical.service.EmailService;
 import com.hivmedical.medical.service.UserService;
 import com.hivmedical.medical.service.AccountService;
@@ -30,6 +34,7 @@ import jakarta.validation.Valid;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 @RestController
@@ -48,6 +53,11 @@ public class AuthAPI {
   private EmailService emailService;
   @Autowired
   private AccountService accountService;
+  @Autowired
+  private AccountRepository accountRepository;
+
+  @Autowired
+  private DoctorRepository doctorRepository;
 
   @Value("${jwt.secret}")
   private String jwtSecret;
@@ -182,7 +192,22 @@ public class AuthAPI {
       response.put("token", jwt);
       response.put("role", user.getRole().name());
       response.put("fullName", user.getFullName() != null ? user.getFullName() : user.getUsername());
-      response.put("patientId", user.getUserId());
+      // response.put("patientId", user.getUserId());
+      if (user.getRole().name().equals("DOCTOR")) {
+        // Lấy account từ AccountRepository qua email
+        Optional<Account> accountOpt = accountRepository.findByEmail(user.getEmail());
+        if (accountOpt.isPresent()) {
+          Account account = accountOpt.get();
+          Optional<Doctor> doctorOpt = doctorRepository.findByAccountId(account.getId());
+          if (doctorOpt.isPresent()) {
+            response.put("doctorId", doctorOpt.get().getId()); // id của bảng doctor
+          }
+        }
+      } else if (user.getRole().name().equals("PATIENT")) {
+        response.put("patientId", user.getUserId());
+      } else if (user.getRole().name().equals("ADMIN")) {
+        response.put("adminId", user.getUserId());
+      }
       logger.info("UserId for login: {}", user.getUserId());
       return ResponseEntity.ok(response);
     } catch (Exception e) {
