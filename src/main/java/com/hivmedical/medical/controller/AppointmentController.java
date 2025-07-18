@@ -100,55 +100,81 @@ public class AppointmentController {
   }
 
   @PostMapping("/online")
-  public ResponseEntity<Map<String, String>> createOnlineAppointment(@Valid @RequestBody OnlineAppointmentDTO dto,
+  public ResponseEntity<Map<String, String>> createOnlineAppointment(
+      @Valid @RequestBody OnlineAppointmentDTO dto,
       BindingResult result) {
+
     if (result.hasErrors()) {
       throw new IllegalArgumentException(result.getAllErrors().get(0).getDefaultMessage());
     }
+
     if (dto.getServiceId() == null) {
       throw new IllegalArgumentException("Cần chọn dịch vụ");
     }
+
     // Kiểm tra service phải là ONLINE
     ServiceEntity service = appointmentService.getServiceById(dto.getServiceId());
     if (!"ONLINE".equalsIgnoreCase(service.getType())) {
       throw new IllegalArgumentException("Chỉ được chọn dịch vụ online cho lịch hẹn online!");
     }
+
     if (dto.getDoctorId() == null) {
       throw new IllegalArgumentException("Cần chọn bác sĩ");
     }
+
     if (dto.getAppointmentDate() == null || dto.getAppointmentDate().isEmpty()) {
       throw new IllegalArgumentException("Cần chọn thời gian lịch hẹn");
     }
+
     AppointmentDTO resultDto = appointmentService.createOnlineAppointment(dto);
-    String url = momoPaymentService.getPayUrl(resultDto.getId().toString(), resultDto.getPrice(),
-        "Thanh Toan Don Hang", "url", "url");
+    String url = momoPaymentService.getPayUrl(
+        resultDto.getId().toString(),
+        resultDto.getPrice(),
+        "Thanh Toan Don Hang",
+        "url",
+        "url");
+
     Map<String, String> response = new HashMap<>();
-    response.put(resultDto.toString(), "url :" + url);
+    response.put("appointmentId", resultDto.getId().toString());
+    response.put("payUrl", url);
+
     return ResponseEntity.ok(response);
   }
 
   @PostMapping("/anonymous-online")
   public ResponseEntity<Map<String, String>> createAnonymousOnlineAppointment(
       @RequestBody AnonymousOnlineDTO dto) {
+
     if (dto.getServiceId() == null) {
       throw new IllegalArgumentException("Cần chọn dịch vụ");
     }
+
     // Kiểm tra service phải là ONLINE
     ServiceEntity service = appointmentService.getServiceById(dto.getServiceId());
     if (!"ONLINE".equalsIgnoreCase(service.getType())) {
       throw new IllegalArgumentException("Chỉ được chọn dịch vụ online cho lịch hẹn online!");
     }
+
     if (dto.getDoctorId() == null) {
       throw new IllegalArgumentException("Cần chọn bác sĩ");
     }
+
     if (dto.getAppointmentDate() == null || dto.getAppointmentDate().isEmpty()) {
       throw new IllegalArgumentException("Cần chọn thời gian lịch hẹn");
     }
+
     AppointmentDTO result = appointmentService.createAnonymousOnlineAppointment(dto);
-    String url = momoPaymentService.getPayUrl(result.getId().toString(), result.getPrice(),
-        "Thanh Toan Don Hang", "url", "url");
+    String url = momoPaymentService.getPayUrl(
+        result.getId().toString(),
+        result.getPrice(),
+        "Thanh Toan Don Hang",
+        "url",
+        "url");
+
     Map<String, String> response = new HashMap<>();
-    response.put(result.toString(), "url :" + url);
+    response.put("appointmentId", result.getId().toString());
+    response.put("payUrl", url);
+
     return ResponseEntity.ok(response);
   }
 

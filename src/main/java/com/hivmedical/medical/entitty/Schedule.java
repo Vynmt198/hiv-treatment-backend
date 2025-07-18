@@ -180,6 +180,7 @@ public class Schedule {
   public enum Status {
     AVAILABLE,
     PENDING,
-    BOOKED
+    BOOKED,
+    ONLINE_PENDING
   }
 }
