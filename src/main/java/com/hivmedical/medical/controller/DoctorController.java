@@ -62,7 +62,7 @@ public class DoctorController {
     return ResponseEntity.ok(doctor);
   }
 
-  @GetMapping("/{id}/schedules")
+  @GetMapping("/{id}/schedule")
   public ResponseEntity<List<ScheduleDTO>> getDoctorAvailableSchedules(
       @PathVariable Long id,
       @RequestParam(required = false) String date) {

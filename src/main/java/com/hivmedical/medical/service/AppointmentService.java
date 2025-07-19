@@ -3,6 +3,7 @@ package com.hivmedical.medical.service;
 import com.hivmedical.medical.dto.AppointmentDTO;
 import com.hivmedical.medical.dto.OnlineAppointmentDTO;
 import com.hivmedical.medical.dto.AnonymousOnlineDTO;
+import com.hivmedical.medical.dto.PrescriptionDTO;
 import com.hivmedical.medical.entitty.AppointmentEntity;
 import com.hivmedical.medical.entitty.Doctor;
 import com.hivmedical.medical.entitty.Schedule;
@@ -10,6 +11,7 @@ import com.hivmedical.medical.entitty.ServiceEntity;
 import com.hivmedical.medical.entitty.Account;
 import com.hivmedical.medical.entitty.Transaction;
 import com.hivmedical.medical.entitty.TransactionType;
+import com.hivmedical.medical.entitty.Prescription;
 import com.hivmedical.medical.repository.AppointmentRepository;
 import com.hivmedical.medical.repository.DoctorRepository;
 import com.hivmedical.medical.repository.ServiceRepository;
@@ -28,6 +30,7 @@ import java.time.LocalDate;
 import com.hivmedical.medical.entitty.PatientProfile;
 import com.hivmedical.medical.repository.PatientProfileRepository;
 import com.hivmedical.medical.repository.ScheduleRepository;
+import com.hivmedical.medical.repository.PrescriptionRepository;
 import com.hivmedical.medical.entitty.AppointmentStatus;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.slf4j.Logger;
@@ -66,6 +69,9 @@ public class AppointmentService {
 
   @Autowired
   private FinanceService financeService;
+
+  @Autowired
+  private PrescriptionRepository prescriptionRepository;
 
   @Transactional
   public AppointmentDTO createAppointment(AppointmentDTO dto) {
@@ -452,6 +458,31 @@ public class AppointmentService {
 
     // Set googleMeetLink nếu entity có trường này
     dto.setGoogleMeetLink(entity.getGoogleMeetLink());
+
+    // Lấy danh sách đơn thuốc của appointment này
+    List<Prescription> prescriptions = prescriptionRepository.findByAppointment(entity);
+    List<PrescriptionDTO> prescriptionDTOs = prescriptions.stream()
+        .map(prescription -> {
+          PrescriptionDTO prescriptionDTO = new PrescriptionDTO();
+          prescriptionDTO.setId(prescription.getId());
+          prescriptionDTO.setPatientId(prescription.getPatient().getId());
+          prescriptionDTO.setDoctorId(prescription.getDoctor().getId());
+          prescriptionDTO.setProtocolId(prescription.getProtocol().getId());
+          prescriptionDTO.setAppointmentId(prescription.getAppointment().getId());
+          prescriptionDTO.setCustomInstructions(prescription.getCustomInstructions());
+          prescriptionDTO.setDosageAdjustments(prescription.getDosageAdjustments());
+          prescriptionDTO.setNotes(prescription.getNotes());
+          prescriptionDTO.setStatus(prescription.getStatus().name());
+          prescriptionDTO.setPrescribedDate(prescription.getPrescribedDate());
+          prescriptionDTO.setStartDateLocal(prescription.getStartDate());
+          prescriptionDTO.setEndDateLocal(prescription.getEndDate());
+          prescriptionDTO.setCreatedAt(prescription.getCreatedAt());
+          prescriptionDTO.setUpdatedAt(prescription.getUpdatedAt());
+          return prescriptionDTO;
+        })
+        .collect(Collectors.toList());
+    dto.setPrescriptions(prescriptionDTOs);
+
     return dto;
   }
 

@@ -132,6 +132,16 @@ public class DoctorService {
     dto.setUpdatedAt(
         schedule.getUpdatedAt() != null ? schedule.getUpdatedAt().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME) : null);
     dto.setAvailable(schedule.isAvailable());
+    
+    // Thêm thông tin bác sĩ
+    Doctor doctor = schedule.getDoctor();
+    if (doctor != null) {
+      dto.setDoctorName(doctor.getFullName());
+      dto.setDoctorEmail(doctor.getEmail());
+      dto.setDoctorPhone(doctor.getPhoneNumber());
+      dto.setDoctorSpecialization(doctor.getSpecialization());
+    }
+    
     return dto;
   }
 
@@ -169,6 +179,16 @@ public class DoctorService {
           dto.setUpdatedAt(schedule.getUpdatedAt() != null
               ? schedule.getUpdatedAt().format(java.time.format.DateTimeFormatter.ISO_LOCAL_DATE_TIME)
               : null);
+          
+          // Thêm thông tin bác sĩ
+          Doctor doctor = schedule.getDoctor();
+          if (doctor != null) {
+            dto.setDoctorName(doctor.getFullName());
+            dto.setDoctorEmail(doctor.getEmail());
+            dto.setDoctorPhone(doctor.getPhoneNumber());
+            dto.setDoctorSpecialization(doctor.getSpecialization());
+          }
+          
           return dto;
         })
         .collect(Collectors.toList());

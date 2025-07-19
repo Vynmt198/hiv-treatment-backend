@@ -1,5 +1,7 @@
 package com.hivmedical.medical.dto;
 
+import java.util.List;
+
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
@@ -52,6 +54,7 @@ public class AppointmentDTO {
   private String googleMeetLink;
 
   private Long scheduleId;
+  private List<PrescriptionDTO> prescriptions;
 
   public Long getScheduleId() {
     return scheduleId;
@@ -252,5 +255,13 @@ public class AppointmentDTO {
 
   public void setPatientId(Long patientId) {
     this.patientId = patientId;
+  }
+
+  public List<PrescriptionDTO> getPrescriptions() {
+    return prescriptions;
+  }
+
+  public void setPrescriptions(List<PrescriptionDTO> prescriptions) {
+    this.prescriptions = prescriptions;
   }
 }

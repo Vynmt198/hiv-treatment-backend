@@ -16,6 +16,12 @@ public class ScheduleDTO {
   private String createdAt;
   private String updatedAt;
 
+  // Thông tin bác sĩ
+  private String doctorName;
+  private String doctorEmail;
+  private String doctorPhone;
+  private String doctorSpecialization;
+
   public ScheduleDTO() {
   }
 
@@ -31,6 +37,25 @@ public class ScheduleDTO {
     this.isAvailable = isAvailable;
     this.createdAt = createdAt;
     this.updatedAt = updatedAt;
+  }
+
+  public ScheduleDTO(Long id, Long doctorId, String date, List<String> timeSlots,
+      String startTime, String endTime, boolean isAvailable,
+      String createdAt, String updatedAt, String doctorName, String doctorEmail,
+      String doctorPhone, String doctorSpecialization) {
+    this.id = id;
+    this.doctorId = doctorId;
+    this.date = date;
+    this.timeSlots = timeSlots;
+    this.startTime = startTime;
+    this.endTime = endTime;
+    this.isAvailable = isAvailable;
+    this.createdAt = createdAt;
+    this.updatedAt = updatedAt;
+    this.doctorName = doctorName;
+    this.doctorEmail = doctorEmail;
+    this.doctorPhone = doctorPhone;
+    this.doctorSpecialization = doctorSpecialization;
   }
 
   public Long getId() {
@@ -103,5 +128,37 @@ public class ScheduleDTO {
 
   public void setUpdatedAt(String updatedAt) {
     this.updatedAt = updatedAt;
+  }
+
+  public String getDoctorName() {
+    return doctorName;
+  }
+
+  public void setDoctorName(String doctorName) {
+    this.doctorName = doctorName;
+  }
+
+  public String getDoctorEmail() {
+    return doctorEmail;
+  }
+
+  public void setDoctorEmail(String doctorEmail) {
+    this.doctorEmail = doctorEmail;
+  }
+
+  public String getDoctorPhone() {
+    return doctorPhone;
+  }
+
+  public void setDoctorPhone(String doctorPhone) {
+    this.doctorPhone = doctorPhone;
+  }
+
+  public String getDoctorSpecialization() {
+    return doctorSpecialization;
+  }
+
+  public void setDoctorSpecialization(String doctorSpecialization) {
+    this.doctorSpecialization = doctorSpecialization;
   }
 }

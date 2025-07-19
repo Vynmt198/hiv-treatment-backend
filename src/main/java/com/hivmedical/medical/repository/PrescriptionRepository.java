@@ -4,6 +4,7 @@ import com.hivmedical.medical.entitty.Prescription;
 import com.hivmedical.medical.entitty.PrescriptionStatus;
 import com.hivmedical.medical.entitty.Account;
 import com.hivmedical.medical.entitty.Doctor;
+import com.hivmedical.medical.entitty.AppointmentEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -38,4 +39,8 @@ public interface PrescriptionRepository extends JpaRepository<Prescription, Long
     @Query("SELECT p FROM Prescription p WHERE p.patient = :patient AND p.prescribedDate >= :startDate ORDER BY p.prescribedDate DESC")
     List<Prescription> findRecentPrescriptionsByPatient(@Param("patient") Account patient,
             @Param("startDate") LocalDateTime startDate);
+
+    List<Prescription> findByAppointment(AppointmentEntity appointment);
+
+    List<Prescription> findByAppointmentAndStatus(AppointmentEntity appointment, PrescriptionStatus status);
 }
