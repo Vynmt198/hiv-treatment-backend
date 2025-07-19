@@ -52,11 +52,15 @@ public class PrescriptionService {
 
     // Lấy đơn thuốc của bệnh nhân
     public List<PrescriptionDTO> getPrescriptionsByPatient(Long patientId) {
+        System.out.println("=== DEBUG: getPrescriptionsByPatient called with patientId: " + patientId);
+
         Account patient = accountRepository.findById(patientId)
                 .orElseThrow(() -> new IllegalArgumentException("Bệnh nhân không tồn tại với ID: " + patientId));
 
-        return prescriptionRepository.findByPatient(patient)
-                .stream()
+        List<Prescription> prescriptions = prescriptionRepository.findByPatient(patient);
+        System.out.println("=== DEBUG: Found " + prescriptions.size() + " prescriptions for patient " + patientId);
+
+        return prescriptions.stream()
                 .map(this::mapToDTO)
                 .collect(Collectors.toList());
     }
@@ -68,6 +72,22 @@ public class PrescriptionService {
 
         return prescriptionRepository.findActivePrescriptionsByPatient(patient)
                 .stream()
+                .map(this::mapToDTO)
+                .collect(Collectors.toList());
+    }
+
+    // Lấy đơn thuốc theo appointment
+    public List<PrescriptionDTO> getPrescriptionsByAppointment(Long appointmentId) {
+        System.out.println("=== DEBUG: getPrescriptionsByAppointment called with appointmentId: " + appointmentId);
+
+        AppointmentEntity appointment = appointmentRepository.findById(appointmentId)
+                .orElseThrow(() -> new IllegalArgumentException("Lịch hẹn không tồn tại với ID: " + appointmentId));
+
+        List<Prescription> prescriptions = prescriptionRepository.findByAppointment(appointment);
+        System.out.println(
+                "=== DEBUG: Found " + prescriptions.size() + " prescriptions for appointment " + appointmentId);
+
+        return prescriptions.stream()
                 .map(this::mapToDTO)
                 .collect(Collectors.toList());
     }
@@ -217,36 +237,46 @@ public class PrescriptionService {
 
     // Chuyển đổi Entity sang DTO
     private PrescriptionDTO mapToDTO(Prescription prescription) {
-        PrescriptionDTO dto = new PrescriptionDTO();
-        dto.setId(prescription.getId());
-        dto.setPatientId(prescription.getPatient().getId());
-        dto.setPatientName(prescription.getPatient().getUsername());
-        dto.setDoctorId(prescription.getDoctor().getId());
-        dto.setDoctorName(prescription.getDoctor().getFullName());
-        dto.setProtocolId(prescription.getProtocol().getId());
-        dto.setProtocolName(prescription.getProtocol().getName());
-        dto.setCustomInstructions(prescription.getCustomInstructions());
-        dto.setDosageAdjustments(prescription.getDosageAdjustments());
-        dto.setNotes(prescription.getNotes());
-        dto.setStatus(prescription.getStatus().name());
-        dto.setPrescribedDate(prescription.getPrescribedDate());
+        try {
+            System.out.println("=== DEBUG: Mapping prescription ID: " + prescription.getId());
 
-        // Convert LocalDateTime to string dates
-        if (prescription.getStartDate() != null) {
-            dto.setStartDate(prescription.getStartDate().toLocalDate().toString());
+            PrescriptionDTO dto = new PrescriptionDTO();
+            dto.setId(prescription.getId());
+            dto.setPatientId(prescription.getPatient().getId());
+            dto.setPatientName(prescription.getPatient().getUsername());
+            dto.setDoctorId(prescription.getDoctor().getId());
+            dto.setDoctorName(prescription.getDoctor().getFullName());
+            dto.setProtocolId(prescription.getProtocol().getId());
+            dto.setProtocolName(prescription.getProtocol().getName());
+            dto.setCustomInstructions(prescription.getCustomInstructions());
+            dto.setDosageAdjustments(prescription.getDosageAdjustments());
+            dto.setNotes(prescription.getNotes());
+            dto.setStatus(prescription.getStatus().name());
+            dto.setPrescribedDate(prescription.getPrescribedDate());
+
+            // Convert LocalDateTime to string dates
+            if (prescription.getStartDate() != null) {
+                dto.setStartDate(prescription.getStartDate().toLocalDate().toString());
+            }
+            if (prescription.getEndDate() != null) {
+                dto.setEndDate(prescription.getEndDate().toLocalDate().toString());
+            }
+
+            dto.setCreatedAt(prescription.getCreatedAt());
+            dto.setUpdatedAt(prescription.getUpdatedAt());
+
+            if (prescription.getAppointment() != null) {
+                dto.setAppointmentId(prescription.getAppointment().getId());
+            }
+
+            System.out.println("=== DEBUG: Successfully mapped prescription ID: " + prescription.getId());
+            return dto;
+        } catch (Exception e) {
+            System.err.println("=== ERROR: Failed to map prescription ID: " + prescription.getId());
+            System.err.println("=== ERROR: " + e.getMessage());
+            e.printStackTrace();
+            throw e;
         }
-        if (prescription.getEndDate() != null) {
-            dto.setEndDate(prescription.getEndDate().toLocalDate().toString());
-        }
-
-        dto.setCreatedAt(prescription.getCreatedAt());
-        dto.setUpdatedAt(prescription.getUpdatedAt());
-
-        if (prescription.getAppointment() != null) {
-            dto.setAppointmentId(prescription.getAppointment().getId());
-        }
-
-        return dto;
     }
 
     // Validate DTO
