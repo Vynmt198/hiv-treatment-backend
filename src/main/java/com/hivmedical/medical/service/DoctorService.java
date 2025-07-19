@@ -132,7 +132,7 @@ public class DoctorService {
     dto.setUpdatedAt(
         schedule.getUpdatedAt() != null ? schedule.getUpdatedAt().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME) : null);
     dto.setAvailable(schedule.isAvailable());
-    
+
     // Thêm thông tin bác sĩ
     Doctor doctor = schedule.getDoctor();
     if (doctor != null) {
@@ -141,7 +141,7 @@ public class DoctorService {
       dto.setDoctorPhone(doctor.getPhoneNumber());
       dto.setDoctorSpecialization(doctor.getSpecialization());
     }
-    
+
     return dto;
   }
 
@@ -179,7 +179,7 @@ public class DoctorService {
           dto.setUpdatedAt(schedule.getUpdatedAt() != null
               ? schedule.getUpdatedAt().format(java.time.format.DateTimeFormatter.ISO_LOCAL_DATE_TIME)
               : null);
-          
+
           // Thêm thông tin bác sĩ
           Doctor doctor = schedule.getDoctor();
           if (doctor != null) {
@@ -188,7 +188,7 @@ public class DoctorService {
             dto.setDoctorPhone(doctor.getPhoneNumber());
             dto.setDoctorSpecialization(doctor.getSpecialization());
           }
-          
+
           return dto;
         })
         .collect(Collectors.toList());
@@ -241,5 +241,55 @@ public class DoctorService {
         .distinct()
         .map(this::convertToDTO)
         .collect(Collectors.toList());
+  }
+
+  // Lấy danh sách bác sĩ theo chuyên khoa
+  public List<DoctorDTO> getDoctorsBySpecialization(String specialization) {
+    List<Doctor> doctors = doctorRepository.findBySpecializationContainingIgnoreCase(specialization);
+    return doctors.stream().map(this::convertToDTO).collect(Collectors.toList());
+  }
+
+  // Tìm kiếm bác sĩ theo tên
+  public List<DoctorDTO> searchDoctorsByName(String name) {
+    List<Doctor> doctors = doctorRepository.findAll().stream()
+        .filter(doctor -> doctor.getFullName() != null &&
+            doctor.getFullName().toLowerCase().contains(name.toLowerCase()))
+        .collect(Collectors.toList());
+    return doctors.stream().map(this::convertToDTO).collect(Collectors.toList());
+  }
+
+  // Tìm kiếm bác sĩ theo chuyên khoa
+  public List<DoctorDTO> searchDoctorsBySpecialization(String specialization) {
+    return getDoctorsBySpecialization(specialization);
+  }
+
+  // Lấy tất cả chuyên khoa
+  public List<String> getAllSpecializations() {
+    return doctorRepository.findAll().stream()
+        .map(Doctor::getSpecialization)
+        .filter(spec -> spec != null && !spec.trim().isEmpty())
+        .distinct()
+        .collect(Collectors.toList());
+  }
+
+  // Tạo bác sĩ mới
+  public DoctorDTO createDoctor(DoctorDTO dto) {
+    if (doctorRepository.findByEmail(dto.getEmail()).isPresent()) {
+      throw new IllegalArgumentException("Email đã tồn tại: " + dto.getEmail());
+    }
+
+    Doctor doctor = new Doctor();
+    doctor.setFullName(dto.getFullName());
+    doctor.setSpecialization(dto.getSpecialization());
+    doctor.setQualification(dto.getQualification());
+    doctor.setEmail(dto.getEmail());
+    doctor.setPhoneNumber(dto.getPhoneNumber());
+    doctor.setWorkingSchedule(dto.getWorkingSchedule());
+    doctor.setImageUrl(dto.getImageUrl());
+    doctor.setCreatedAt(LocalDateTime.now());
+    doctor.setUpdatedAt(LocalDateTime.now());
+
+    Doctor savedDoctor = doctorRepository.save(doctor);
+    return convertToDTO(savedDoctor);
   }
 }
