@@ -91,4 +91,58 @@ public class ScheduleService {
     return scheduleRepository.findById(id)
         .orElseThrow(() -> new IllegalArgumentException("Khung giờ với ID " + id + " không tồn tại"));
   }
+
+  // Lấy lịch làm việc của bác sĩ theo ID
+  public List<com.hivmedical.medical.dto.ScheduleDTO> getDoctorSchedules(Long doctorId) {
+    List<Schedule> schedules = scheduleRepository.findByDoctorIdAndIsAvailableTrueAndStartTimeAfter(doctorId,
+        LocalDateTime.now());
+    return schedules.stream()
+        .map(this::convertToScheduleDTO)
+        .collect(java.util.stream.Collectors.toList());
+  }
+
+  // Lấy lịch làm việc của bác sĩ theo ngày
+  public List<com.hivmedical.medical.dto.ScheduleDTO> getDoctorSchedulesByDate(Long doctorId, LocalDate date) {
+    List<Schedule> schedules = scheduleRepository.findByDoctorIdAndDateAndIsAvailableTrue(doctorId, date);
+    return schedules.stream()
+        .map(this::convertToScheduleDTO)
+        .collect(java.util.stream.Collectors.toList());
+  }
+
+  // Convert Schedule entity to ScheduleDTO
+  private com.hivmedical.medical.dto.ScheduleDTO convertToScheduleDTO(Schedule schedule) {
+    com.hivmedical.medical.dto.ScheduleDTO dto = new com.hivmedical.medical.dto.ScheduleDTO();
+    dto.setId(schedule.getId());
+    dto.setDoctorId(schedule.getDoctor().getId());
+    dto.setDate(schedule.getDate() != null ? schedule.getDate().toString() : null);
+
+    // Parse time slots if needed
+    if (schedule.getTimeSlots() != null) {
+      try {
+        com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+        java.util.List<String> timeSlots = mapper.readValue(schedule.getTimeSlots(),
+            new com.fasterxml.jackson.core.type.TypeReference<java.util.List<String>>() {
+            });
+        dto.setTimeSlots(timeSlots);
+      } catch (Exception e) {
+        dto.setTimeSlots(java.util.List.of(schedule.getTimeSlots()));
+      }
+    }
+
+    dto.setStartTime(schedule.getStartTime() != null ? schedule.getStartTime().toString() : null);
+    dto.setEndTime(schedule.getEndTime() != null ? schedule.getEndTime().toString() : null);
+    dto.setAvailable(schedule.isAvailable());
+    dto.setCreatedAt(schedule.getCreatedAt() != null ? schedule.getCreatedAt().toString() : null);
+    dto.setUpdatedAt(schedule.getUpdatedAt() != null ? schedule.getUpdatedAt().toString() : null);
+
+    // Add doctor information
+    if (schedule.getDoctor() != null) {
+      dto.setDoctorName(schedule.getDoctor().getFullName());
+      dto.setDoctorEmail(schedule.getDoctor().getEmail());
+      dto.setDoctorPhone(schedule.getDoctor().getPhoneNumber());
+      dto.setDoctorSpecialization(schedule.getDoctor().getSpecialization());
+    }
+
+    return dto;
+  }
 }

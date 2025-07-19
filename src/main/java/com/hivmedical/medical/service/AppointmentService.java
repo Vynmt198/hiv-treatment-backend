@@ -25,13 +25,16 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.ArrayList;
 import java.util.stream.Collectors;
 import java.time.LocalDate;
 import com.hivmedical.medical.entitty.PatientProfile;
 import com.hivmedical.medical.repository.PatientProfileRepository;
 import com.hivmedical.medical.repository.ScheduleRepository;
 import com.hivmedical.medical.repository.PrescriptionRepository;
+import com.hivmedical.medical.repository.UserRepositoty;
 import com.hivmedical.medical.entitty.AppointmentStatus;
+import com.hivmedical.medical.entitty.UserEntity;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -73,6 +76,9 @@ public class AppointmentService {
   @Autowired
   private PrescriptionRepository prescriptionRepository;
 
+  @Autowired
+  private UserRepositoty userRepository;
+
   @Transactional
   public AppointmentDTO createAppointment(AppointmentDTO dto) {
     // Validate input
@@ -112,6 +118,9 @@ public class AppointmentService {
     entity.setDoctor(doctor);
     entity.setAppointmentType(dto.getAppointmentType());
     entity.setFullName(dto.getFullName());
+    entity.setPhone(dto.getPhone());
+    entity.setGender(dto.getGender());
+    entity.setDescription(dto.getDescription());
     entity.setBookingMode(AppointmentEntity.BookingMode.NORMAL);
 
     if (dto.getAppointmentDate() != null) {
@@ -520,9 +529,71 @@ public class AppointmentService {
   }
 
   public List<AppointmentDTO> getAppointmentsByPatient(Long patientId) {
-    return appointmentRepository.findByUserId(patientId).stream()
+    System.out.println("=== DEBUG: getAppointmentsByPatient called with patientId: " + patientId);
+
+    // Sử dụng mapping để tìm account ID
+    Long accountId = getAccountIdFromPatientId(patientId);
+    if (accountId == null) {
+      System.out.println("=== DEBUG: No account ID found for patientId " + patientId);
+      return new ArrayList<>();
+    }
+
+    System.out.println("=== DEBUG: Using account ID " + accountId + " for patientId " + patientId);
+
+    // Tìm appointments với account ID đã map
+    List<AppointmentDTO> appointments = appointmentRepository.findByUserId(accountId).stream()
         .map(this::mapToDTO)
         .collect(Collectors.toList());
+
+    System.out.println("=== DEBUG: Found " + appointments.size() + " appointments with mapped account ID");
+
+    return appointments;
+  }
+
+  // Method để tìm account ID từ user ID hoặc email
+  public Long getAccountIdFromPatientId(Long patientId) {
+    System.out.println("=== DEBUG: getAccountIdFromPatientId called with patientId: " + patientId);
+
+    // Ưu tiên tìm user trước (nếu patientId là user_id)
+    try {
+      UserEntity user = userRepository.findById(patientId).orElse(null);
+      if (user != null) {
+        System.out.println("=== DEBUG: Found user with ID " + patientId + ", email: " + user.getEmail());
+
+        // Tìm account theo email của user
+        Account account = accountRepository.findByEmail(user.getEmail()).orElse(null);
+        if (account != null) {
+          System.out.println(
+              "=== DEBUG: Found account by email with ID " + account.getId() + ", username: " + account.getUsername());
+          return account.getId();
+        }
+
+        // Nếu không tìm thấy theo email, thử tìm theo username
+        account = accountRepository.findByUsername(user.getEmail()).orElse(null);
+        if (account != null) {
+          System.out.println("=== DEBUG: Found account by username with ID " + account.getId() + ", username: "
+              + account.getUsername());
+          return account.getId();
+        }
+
+        System.out.println("=== DEBUG: No account found for email: " + user.getEmail());
+      } else {
+        System.out.println("=== DEBUG: No user found with ID " + patientId);
+      }
+    } catch (Exception e) {
+      System.out.println("=== DEBUG: Error finding user: " + e.getMessage());
+    }
+
+    // Nếu không tìm thấy user, thử tìm account trực tiếp với patientId
+    Account account = accountRepository.findById(patientId).orElse(null);
+    if (account != null) {
+      System.out.println("=== DEBUG: Found account directly with ID " + patientId + ", username: "
+          + account.getUsername() + ", email: " + account.getEmail());
+      return patientId;
+    }
+
+    System.out.println("=== DEBUG: No account found for patientId " + patientId);
+    return null;
   }
 
   public AppointmentDTO confirmPayment(Long appointmentId) {
