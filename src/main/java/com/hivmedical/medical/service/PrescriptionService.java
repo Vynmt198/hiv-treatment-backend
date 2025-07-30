@@ -35,6 +35,19 @@ public class PrescriptionService {
     @Autowired
     private AppointmentRepository appointmentRepository;
 
+    public PrescriptionService(PrescriptionRepository prescriptionRepository,
+                           AccountRepository accountRepository,
+                           DoctorRepository doctorRepository,
+                           ARVProtocolRepository arvProtocolRepository,
+                           AppointmentRepository appointmentRepository) {
+    this.prescriptionRepository = prescriptionRepository;
+    this.accountRepository = accountRepository;
+    this.doctorRepository = doctorRepository;
+    this.arvProtocolRepository = arvProtocolRepository;
+    this.appointmentRepository = appointmentRepository;
+}
+
+
     // Lấy tất cả đơn thuốc
     public List<PrescriptionDTO> getAllPrescriptions() {
         return prescriptionRepository.findAll()
