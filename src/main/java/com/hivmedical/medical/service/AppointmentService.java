@@ -596,6 +596,7 @@ public class AppointmentService {
     return null;
   }
 
+  @Transactional
   public AppointmentDTO confirmPayment(Long appointmentId) {
     AppointmentEntity appointment = appointmentRepository.findById(appointmentId)
         .orElseThrow(() -> new IllegalArgumentException("Appointment not found"));
@@ -618,28 +619,30 @@ public class AppointmentService {
     }
 
     // Tích hợp lưu Transaction cho các dịch vụ đặt lịch online
-    if ((appointment.getBookingMode() == AppointmentEntity.BookingMode.ONLINE
-        || appointment.getBookingMode() == AppointmentEntity.BookingMode.ANONYMOUS_ONLINE)
-        && appointment.getStatus() == AppointmentStatus.IN_PROGRESS) {
-      // Lấy giá dịch vụ (ServiceEntity.price là String, cần chuyển sang Long)
-      String priceStr = appointment.getService().getPrice();
-      Long price = 0L;
-      try {
-        price = Long.parseLong(priceStr);
-      } catch (Exception e) {
-        // Nếu lỗi chuyển đổi, bỏ qua lưu transaction
-        price = 0L;
-      }
-      if (price > 0) {
-        Transaction transaction = new Transaction();
-        transaction.setDate(appointment.getUpdatedAt().toLocalDate());
-        transaction.setType(TransactionType.INCOME);
-        transaction.setDescription(
-            "Thanh toán dịch vụ '" + appointment.getService().getName() + "' cho lịch hẹn #" + appointment.getId());
-        transaction.setAmount(price);
-        financeService.createTransaction(transaction);
-      }
-    }
+    // if ((appointment.getBookingMode() == AppointmentEntity.BookingMode.ONLINE
+    // || appointment.getBookingMode() ==
+    // AppointmentEntity.BookingMode.ANONYMOUS_ONLINE)
+    // && appointment.getStatus() == AppointmentStatus.IN_PROGRESS) {
+    // // Lấy giá dịch vụ (ServiceEntity.price là String, cần chuyển sang Long)
+    // String priceStr = appointment.getService().getPrice();
+    // Long price = 0L;
+    // try {
+    // price = Long.parseLong(priceStr);
+    // } catch (Exception e) {
+    // // Nếu lỗi chuyển đổi, bỏ qua lưu transaction
+    // price = 0L;
+    // }
+    // if (price > 0) {
+    // Transaction transaction = new Transaction();
+    // transaction.setDate(appointment.getUpdatedAt().toLocalDate());
+    // transaction.setType(TransactionType.INCOME);
+    // transaction.setDescription(
+    // "Thanh toán dịch vụ '" + appointment.getService().getName() + "' cho lịch hẹn
+    // #" + appointment.getId());
+    // transaction.setAmount(price);
+    // financeService.createTransaction(transaction);
+    // }
+    // }
 
     return mapToDTO(appointment);
   }
